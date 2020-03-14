@@ -1,8 +1,12 @@
+//import com.typesafe.sbt.SbtGit.git
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 name := "sporthub"
 
-version := "0.1"
+version := "0.1.0"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.10"
 
 val scalacFlags = Seq(
   //  "-Xlog-implicits",
@@ -57,60 +61,49 @@ val scalacFlags = Seq(
 
 scalacOptions in ThisBuild ++= scalacFlags
 
-val globalExclusions = new {
-  def ExclusionRuleVersioned(org: String, moduleName: String): ExclusionRule =
-    ExclusionRule(org, s"${moduleName}_2.12")
-
-  val akka = ExclusionRule(organization = "com.typesafe.akka")
-
-  val cats = List("cats-core", "cats-effect", "cats-free", "cats-macros", "alleycats-core")
-    .map(ExclusionRuleVersioned("org.typelevel", _))
-
-  val slf4j = ExclusionRule(organization = "org.slf4j")
-}
 
 val versions = new {
-  val cats = "2.0.0-RC1"
-  val magnolia = "0.11.0"
+  val cats = "2.0.0"
   val slf4j = "1.7.26"
   val logback = "1.2.3"
-  val prometheus = "0.6.0"
-  val tofu = "0.4.0"
   val typedSchema = "0.11.0-RC2"
+  val tethys = "0.10.0"
   val scalaLogging = "3.9.2"
-  val scalaCache = "0.28.0"
-
-  val zio = new {
-    val core = "1.0.0-RC11-1"
-    val nio = "0.1.1"
-    val cats = "2.0.0.0-RC2"
-  }
-
-  val scalajHttp = "2.4.2"
   val doobie = "0.8.2"
   val newType = "0.4.3"
 
-  val tethys = "0.10.0"
-  val akka = new {
-    val core = "2.5.24"
-    val http = "10.1.9"
-    val cors = "0.4.1"
+  val zio = new {
+    val main = "1.0.0-RC16"
+    val nio = "0.1.1"
+    val cats = "2.0.0.0-RC7"
+    val twitter = "19.10.0.0-RC3"
   }
+  val scalajHttp = "2.4.2"
+}
+
+val exclusions = new {
+  val findBugs = ExclusionRule(organization = "com.google.code.findbugs")
+  val nettyHandler =
+    ExclusionRule(organization = "io.netty", name = "netty-handler")
+  val zioCore = ExclusionRule(organization = "dev.zio", name = "zio_2.12")
+  val zioInteropCats =
+    ExclusionRule(organization = "dev.zio", name = "zio-interop-cats_2.12")
+  val typedSchemaSwagger = ExclusionRule(organization = "ru.tinkoff",
+    name = "typed-schema-swagger_2.12")
+  val typedSchemaParam =
+    ExclusionRule(organization = "ru.tinkoff", name = "typed-schema-param_2.12")
+  val catsCore =
+    ExclusionRule(organization = "org.typelevel", name = "cats-core_2.12")
+
 }
 
 val dependencies = Seq(
   //httpclient
   "org.scalaj" %% "scalaj-http" % versions.scalajHttp,
 
-  //akka
-  "com.typesafe.akka" %% "akka-stream"    % versions.akka.core,
-  "com.typesafe.akka" %% "akka-actor"     % versions.akka.core,
-  "com.typesafe.akka" %% "akka-http"      % versions.akka.http,
-  "ch.megard"         %% "akka-http-cors" % versions.akka.cors,
-
   // zio
-  "org.scalaz" %% "scalaz-zio"              % versions.zio.core,
-  "org.scalaz" %% "scalaz-zio-interop-cats" % versions.zio.cats,
+  "dev.zio" %% "zio"              % versions.zio.main,
+  "dev.zio" %% "zio-interop-cats" % versions.zio.cats,
 
   //cats
   "org.typelevel" %% "cats-core"   % versions.cats,
@@ -132,28 +125,9 @@ val dependencies = Seq(
   "ch.qos.logback"              % "logback-classic"         % versions.logback,
   "com.typesafe.scala-logging" %% "scala-logging"           % versions.scalaLogging,
   "com.lihaoyi"                %% "sourcecode"              % "0.1.6" withSources(),
-  "ru.tinkoff"                 %% "tofu-logging-structured" % versions.tofu, //excludeAll globalExclusions.slf4j,
-  "ru.tinkoff"                 %% "tofu-logging-derivation" % versions.tofu,// excludeAll globalExclusions.slf4j,
-  "ru.tinkoff"                 %% "tofu-logging-layout"     % versions.tofu excludeAll (globalExclusions.cats:_*) excludeAll(globalExclusions.slf4j),
-
-  //cache
-  "com.github.cb372" %% "scalacache-core"        % versions.scalaCache,
-  "com.github.cb372" %% "scalacache-cats-effect" % versions.scalaCache excludeAll (globalExclusions.cats: _*),
-  "com.github.cb372" %% "scalacache-caffeine"    % versions.scalaCache,
-
-  //metrics
-  "io.prometheus" % "simpleclient"            % versions.prometheus,
-  "io.prometheus" % "simpleclient_hotspot"    % versions.prometheus,
-  "io.prometheus" % "simpleclient_httpserver" % versions.prometheus,
-
-  "org.scalactic" %% "scalactic" % "3.0.7",
-
-  //magnolia
-  "com.propensive" %% "magnolia"   % "0.11.0",
 
   "com.beachape"   %% "enumeratum"   % "1.5.13",
   "io.scalaland"   %% "chimney"      % "0.3.2",
-  "io.monix"       %% "monix-catnap" % "3.0.0-RC2",
 
   //tethys
   "com.tethys-json" %% "tethys-core"       % versions.tethys,
@@ -161,12 +135,19 @@ val dependencies = Seq(
   "com.tethys-json" %% "tethys-derivation" % versions.tethys,
 
   //typedSchema
-  "ru.tinkoff" %% "typed-schema-akka-http" % versions.typedSchema excludeAll globalExclusions.akka,
-  "ru.tinkoff" %% "typed-schema-swagger"   % versions.typedSchema,
+  "ru.tinkoff" %% "typed-schema-finagle" % versions.typedSchema excludeAll exclusions.findBugs,
+  "ru.tinkoff" %% "typed-schema-finagle-zio" % versions.typedSchema excludeAll (
+    exclusions.findBugs,
+    exclusions.zioCore,
+    exclusions.zioInteropCats),
+
+  "ru.tinkoff" %% "typed-schema-finagle-tethys" % versions.typedSchema excludeAll exclusions.findBugs,
+  "ru.tinkoff" %% "typed-schema-finagle-common" % versions.typedSchema excludeAll (exclusions.findBugs, exclusions.catsCore),
 
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.1"),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+
 )
 
 val testDependencies = Seq(
@@ -185,3 +166,29 @@ resolvers in ThisBuild ++= Seq(
 )
 
 
+lazy val sporhub = (project in file("."))
+  .enablePlugins(
+    JavaAppPackaging,
+    GitVersioning,
+    BuildInfoPlugin
+  )
+  .settings(name := "sporhub")
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](
+      name,
+      version,
+      scalaVersion,
+      sbtVersion,
+      git.branch,
+      git.gitHeadCommit,
+      git.gitHeadCommitDate,
+      git.gitCurrentBranch,
+      BuildInfoKey.action("buildTime") {
+        ZonedDateTime
+          .now()
+          .format(DateTimeFormatter.ofPattern("YYYYMMdd_hhmmss"))
+      }
+    ),
+    version := "0.1.0",
+    libraryDependencies := dependencies
+  )
