@@ -1,8 +1,9 @@
-//import com.typesafe.sbt.SbtGit.git
+import com.typesafe.sbt.SbtGit.git
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-name := "sporthub"
+name := "activityHub"
+organization in ThisBuild := "ru.activity.hub.api"
 
 version := "0.1.0"
 
@@ -104,6 +105,7 @@ val dependencies = Seq(
   // zio
   "dev.zio" %% "zio"              % versions.zio.main,
   "dev.zio" %% "zio-interop-cats" % versions.zio.cats,
+  "dev.zio" %% "zio-interop-twitter" % versions.zio.twitter excludeAll exclusions.zioCore,
 
   //cats
   "org.typelevel" %% "cats-core"   % versions.cats,
@@ -166,13 +168,13 @@ resolvers in ThisBuild ++= Seq(
 )
 
 
-lazy val sporhub = (project in file("."))
+lazy val activityHub = (project in file("."))
   .enablePlugins(
     JavaAppPackaging,
     GitVersioning,
     BuildInfoPlugin
   )
-  .settings(name := "sporhub")
+  .settings(name := "activityHub")
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
       name,
