@@ -1,4 +1,4 @@
-package ru.activity.hub.infrastructure
+package ru.activity.hub.api.infrastructure
 
 import zio.ZIO
 

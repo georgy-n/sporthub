@@ -1,4 +1,4 @@
-package ru.activity.hub.infrastructure.logging
+package ru.activity.hub.api.infrastructure.logging
 
 trait Logging[F[_]] {
   def info(message: String): F[Unit]

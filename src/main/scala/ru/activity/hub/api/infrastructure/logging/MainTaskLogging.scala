@@ -1,6 +1,6 @@
-package ru.activity.hub.infrastructure.logging
+package ru.activity.hub.api.infrastructure.logging
 
-import ru.activity.hub.infrastructure.MainTask.MainTask
+import ru.activity.hub.api.infrastructure.MainTask.MainTask
 
 class MainTaskLogging extends Logging[MainTask] {
   override def info(message: String): MainTask[Unit] = ???
