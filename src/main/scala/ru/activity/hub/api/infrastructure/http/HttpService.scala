@@ -4,31 +4,32 @@ import cats.instances.list._
 import cats.syntax.all._
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response}
-import ru.activity.hub.api.infrastructure.{Context, HttpContext}
+import ru.activity.hub.api.infrastructure.{Context, HttpContext, TrackingIdGenerator}
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
 import ru.activity.hub.api.infrastructure.http.Entry.monoid
 import zio._
 import zio.interop.twitter._
 import ru.activity.hub.api.infrastructure.HttpTask._
+import ru.activity.hub.api.infrastructure.logging.Logging
 
 object HttpService {
   def make(modules: List[HttpModule[HttpTask]])
-          (implicit runtime: Runtime[Any]): Service[Request, Response] = {
+          (implicit runtime: Runtime[Any], logging: Logging[HttpTask]): Service[Request, Response] = {
     val entry     = modules.foldMap(_.entry)
-    val fullroute = entry.route
+    val fullRoute = entry.route
 
     req => {
-//      val requestMeta = requestMetaExtractor.extract(req.headerMap.toMap)
+      val trackingId = TrackingIdGenerator.generate
       runtime.unsafeRunToTwitterFuture(for {
-        taskCtx  <- ZIO.effect(Context("requestMeta", Some(HttpContext(matched = 0, path = req.path, request = req))))
-        response <- fullroute
+        context  <- ZIO.effect(Context(trackingId, Some(HttpContext(matched = 0, path = req.path, request = req))))
+        response <- (logging.info(s"recieved request $req") *> fullRoute
                       .catchAll(ErrorHandlers.handle)
                       .catchAllCause(
                         cause => {
                           val err = cause.squash
                           ErrorHandlers.handle(err)
                         }
-                      ).provide(taskCtx)
+                      )).provide(context)
       } yield response)
     }
   }

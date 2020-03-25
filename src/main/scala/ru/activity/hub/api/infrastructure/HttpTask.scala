@@ -2,19 +2,14 @@ package ru.activity.hub.api.infrastructure
 
 import cats.Functor
 import cats.syntax.semigroup._
-
 import http.{ReqCompleter, ResponseObj}
 import http.ResponseObj.Just
 import http.domain.AccResponse
 import com.twitter.finagle.{http => fhttp}
+import ru.activity.hub.api.infrastructure.MainTask.MainTask
+import ru.activity.hub.api.infrastructure.logging.LoggingImpl
 import ru.tinkoff.tschema.finagle.tethysInstances.tethysEncodeComplete
-import ru.tinkoff.tschema.finagle.{
-  Complete,
-  LiftHttp,
-  Rejection,
-  Routed,
-  RoutedPlus
-}
+import ru.tinkoff.tschema.finagle._
 import tethys.JsonWriter
 import zio.ZIO
 import zio.interop.catz._
@@ -23,6 +18,7 @@ import scala.util.control.NoStackTrace
 
 object HttpTask {
   type HttpTask[A] = ZIO[Context, Throwable, A]
+  implicit val logging = new LoggingImpl[HttpTask]
 
   object HttpContextMissed extends Throwable with NoStackTrace
   case class Rejected(rejection: Rejection) extends Throwable with NoStackTrace

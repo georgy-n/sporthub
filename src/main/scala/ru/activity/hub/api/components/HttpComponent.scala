@@ -7,12 +7,13 @@ import zio.interop.catz._
 import zio.interop.twitter._
 import cats.effect.Resource
 import com.twitter.finagle.http.{Request, Response}
+import ru.activity.hub.api.configs.HttpConfig
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
+import ru.activity.hub.api.infrastructure.HttpTask._
+
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
 
-final case class HttpComponent(
-    public: ListeningServer
-)
+final case class HttpComponent(public: ListeningServer)
 
 object HttpComponent {
   final case class Modules[F[_]](
@@ -20,15 +21,13 @@ object HttpComponent {
   )
 
   def build(modules: Modules[HttpTask])(
-//             config: SystemConfig,
-      httpRuntime: Runtime[Any],
-//              requestMetaExtractor: RequestMetaExtractor
+      config: HttpConfig,
+      httpRuntime: Runtime[Any]
   ): Resource[MainTask, HttpComponent] = {
     implicit val r = httpRuntime
-//    implicit val re = requestMetaExtractor
 
     def public: Service[Request, Response] =
-      HttpService.make(modules.public) //(config.publicHttp.swagger, info, desc)
+      HttpService.make(modules.public)
 
     def bind(server: Http.Server,
              service: Service[Request, Response],
@@ -39,7 +38,7 @@ object HttpComponent {
 
     for {
       server <- Resource.pure[MainTask, Http.Server](Http.server)
-      public <- bind(server, public, 9090)
+      public <- bind(server, public, config.port)
     } yield HttpComponent(public)
   }
 }

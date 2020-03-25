@@ -2,7 +2,7 @@ package ru.activity.hub.api
 
 import buildinfo.BuildInfo
 import cats.effect.Resource
-import ru.activity.hub.api.components.HttpComponent
+import ru.activity.hub.api.components.{ConfigComponent, HttpComponent}
 import ru.activity.hub.api.components.HttpComponent.Modules
 import ru.activity.hub.api.components.handlers.system.SystemModule
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
@@ -12,6 +12,7 @@ import zio.interop.catz._
 import cats.syntax.all._
 import ru.activity.hub.api.infrastructure.Context
 import zio.{DefaultRuntime, ZIO}
+import cats.effect.Resource.liftF
 
 class Application {
 //
@@ -20,9 +21,9 @@ val defRuntime = new DefaultRuntime {}
   val start: Resource[MainTask, Unit]  =
 //
     for {
-//      configs <- ConfigComponent.build[MainTask]()
+      configs <- liftF(ConfigComponent.build[MainTask])
 //      db <- DBComponent.build[MainTask]()
-      httpComp <- HttpComponent.build(Modules(new SystemModule[MainTask, HttpTask] :: Nil))(defRuntime)
+      httpComp <- HttpComponent.build(Modules(new SystemModule[MainTask, HttpTask] :: Nil))(configs.config.httpConfig, defRuntime)
     } yield ()
 
 }
