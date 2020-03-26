@@ -31,7 +31,5 @@ object ResponseObj {
   def ok[R: JsonWriter](r: R, trackingId: String): AccResponse =
     make(r.asJson, Status.Ok, trackingId)
 
-  // Just is a formal wrapper of some http result. It tells us
-  // that result should be wrapped with context information before rendering.
   final abstract class Just[A]
 }

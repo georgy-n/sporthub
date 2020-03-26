@@ -1,7 +1,7 @@
 package ru.activity.hub.api.infrastructure
 
 import scala.util.Random
-
+//TODO rework this
 object TrackingIdGenerator {
   private val symbols = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
   def generate: String = {

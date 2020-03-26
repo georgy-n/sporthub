@@ -9,10 +9,9 @@ import cats.effect.Sync
 import ru.activity.hub.api.infrastructure.http._
 import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter}
 import ru.tinkoff.tschema.finagle.{LiftHttp, MkService, RoutedPlus}
-import ru.tinkoff.tschema.swagger.SwaggerBuilder
 import ru.tinkoff.tschema.syntax._
 import tethys.JsonObjectWriter
-import tethys.derivation.semiauto.{jsonReader, jsonWriter}
+import tethys.derivation.semiauto.jsonWriter
 
 final class SystemModule[
     F[_]: Sync, Http[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter]
@@ -50,7 +49,6 @@ object SystemEndpointsComponent {
   implicit val vW: JsonObjectWriter[VersionInfo] = jsonWriter[VersionInfo]
 
   def api =
-    tag('System) |> (get |> prefix('system) |> (
-      (operation('version) |> $$$[VersionInfo])
-    ))
+    tag('System) |> (get |> prefix('system) |>
+      (operation('version) |> $$$[VersionInfo]))
 }

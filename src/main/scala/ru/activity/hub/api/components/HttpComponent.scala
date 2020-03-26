@@ -16,9 +16,7 @@ import ru.activity.hub.api.infrastructure.MainTask.MainTask
 final case class HttpComponent(public: ListeningServer)
 
 object HttpComponent {
-  final case class Modules[F[_]](
-      public: List[HttpModule[F]]
-  )
+  final case class Modules[F[_]](public: List[HttpModule[F]])
 
   def build(modules: Modules[HttpTask])(
       config: HttpConfig,

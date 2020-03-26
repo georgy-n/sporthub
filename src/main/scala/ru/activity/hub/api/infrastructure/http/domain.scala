@@ -9,13 +9,13 @@ object domain {
 
   case class AccResponse(
                           payload: RawJson,
-                          trackingId: String,
+                          trackingId: String, // TODO newtype this
                           status: Status
                         )
 
   case class ErrorPayload(
                            message: String,
-                           code: String, // TODO newtype or enum?
+                           code: String,
                            info: Option[Map[String, String]] = None
                          )
 
