@@ -12,10 +12,12 @@ object DatabaseComponent {
   def build[F[_]: Async: ContextShift]: Resource[F, DatabaseComponent[F]] = {
     def newTransactor: Resource[F, HikariTransactor[F]] = {
       val config = new HikariConfig()
-      config.setJdbcUrl("")
-      config.setUsername("")
-      config.setPassword("")
-      config.setMaximumPoolSize(5)
+      config.setJdbcUrl("jdbc:postgresql://drona.db.elephantsql.com:5432/tlfakbeb")
+      config.setUsername("tlfakbeb")
+      config.setPassword("lBI73yQhSbCSnRFD852Fhph0x3Gl8c9E")
+      config.setDriverClassName("org.postgresql.Driver")
+      config.setMaximumPoolSize(2)
+      config.setAutoCommit(true)
 
       for {
         ce <- ExecutorCreator.fixedExecutionContextResource(2, "doobie-ec") // our connect EC

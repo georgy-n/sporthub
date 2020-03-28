@@ -23,7 +23,7 @@ object HttpService {
       runtime.unsafeRunToTwitterFuture(for {
         context  <- ZIO.effect(Context(trackingId, Some(HttpContext(matched = 0, path = req.path, request = req))))
         response <- (logging.info(s"recieved request $req") *> fullRoute
-                      .catchAll(ErrorHandlers.handle)
+                      .catchAll(th => ErrorHandlers.handle(th) <* logging.error("error throwed", th))
                       .catchAllCause(
                         cause => {
                           val err = cause.squash

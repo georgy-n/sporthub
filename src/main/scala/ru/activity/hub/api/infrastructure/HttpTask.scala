@@ -6,7 +6,6 @@ import http.{ReqCompleter, ResponseObj}
 import http.ResponseObj.Just
 import http.domain.AccResponse
 import com.twitter.finagle.{http => fhttp}
-import ru.activity.hub.api.infrastructure.MainTask.MainTask
 import ru.activity.hub.api.infrastructure.logging.LoggingImpl
 import ru.tinkoff.tschema.finagle.tethysInstances.tethysEncodeComplete
 import ru.tinkoff.tschema.finagle._
