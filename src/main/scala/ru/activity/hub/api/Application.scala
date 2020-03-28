@@ -2,7 +2,12 @@ package ru.activity.hub.api
 
 import buildinfo.BuildInfo
 import cats.effect.Resource
-import ru.activity.hub.api.components.{ConfigComponent, HttpComponent}
+import ru.activity.hub.api.components.{
+  ConfigComponent,
+  DatabaseComponent,
+  ExecutionComponent,
+  HttpComponent
+}
 import ru.activity.hub.api.components.HttpComponent.Modules
 import ru.activity.hub.api.components.handlers.system.SystemModule
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
@@ -15,23 +20,22 @@ import zio.{DefaultRuntime, ZIO}
 import cats.effect.Resource.liftF
 
 class Application {
-//
-val defRuntime = new DefaultRuntime {}
-
-  val start: Resource[MainTask, Unit]  =
-//
+  val start: Resource[MainTask, Unit] =
     for {
       configs <- liftF(ConfigComponent.build[MainTask])
-//      db <- DBComponent.build[MainTask]()
-      httpComp <- HttpComponent.build(Modules(new SystemModule[MainTask, HttpTask] :: Nil))(configs.config.httpConfig, defRuntime)
+      executors <- ExecutionComponent.build[MainTask]
+//      db <- DatabaseComponent.build[MainTask]
+      httpComp <- HttpComponent.build(
+        Modules(new SystemModule[MainTask, HttpTask] :: Nil))(
+        configs.config.httpConfig,
+        executors.main)
     } yield ()
 
 }
 
 object Main extends App {
-  val defRuntime = new DefaultRuntime {}
 
-  defRuntime.unsafeRun(
+  DRuntime.unsafeRun(
     new Application().start
       .use(_ => ZIO.never)
 //      .catchAllCause(th => )
