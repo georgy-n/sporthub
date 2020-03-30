@@ -12,6 +12,7 @@ import ru.tinkoff.tschema.syntax._
 import tethys._
 import tethys.derivation.semiauto._
 
+import ru.activity.hub.api.infrastructure.NewTypeInstances._
 
 
 final class UserHandlers[
@@ -22,16 +23,15 @@ final class UserHandlers[
   override val entry = Entry(MkService[Http](api)(handler))
 
   object handler {
-    def info(userId: String): F[User] = userModule.userService.getUser(User.Id(userId))
+    def info(userId: User.Id): F[User] = userModule.userService.getUser(userId)
   }
 }
 
 object UserEndpointsComponent {
-  import ru.activity.hub.api.infrastructure.NewTypeInstances._
   implicit val userWriter: JsonObjectWriter[User] = jsonWriter[User]
 
   def api =
     prefix('user) |>
-      (get |>operation('info) |> queryParam[String]('userId) |> $$$[User])
+      (get |>operation('info) |> queryParam[User.Id]('userId) |> $$$[User])
 }
 
