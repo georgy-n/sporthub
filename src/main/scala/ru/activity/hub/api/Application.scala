@@ -9,7 +9,6 @@ import ru.activity.hub.api.components.{ConfigComponent, DatabaseComponent, Execu
 import ru.activity.hub.api.infrastructure.Context
 import ru.activity.hub.api.infrastructure.HttpTask.{HttpTask, _}
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
-import ru.activity.hub.api.services.user.UserModule
 import zio.ZIO
 import zio.interop.catz._
 
@@ -20,7 +19,7 @@ class Application {
       executors <- ExecutionComponent.build[MainTask]
       db <- DatabaseComponent.build[MainTask]
       services <- liftF(ServicesComponent.build[MainTask](db))
-      httpComp <- HttpComponent.build(
+      _ <- HttpComponent.build(
         Modules(
           new SystemModule[MainTask, HttpTask] :: new UserHandlers[MainTask, HttpTask](services.userModule) :: Nil
         )
