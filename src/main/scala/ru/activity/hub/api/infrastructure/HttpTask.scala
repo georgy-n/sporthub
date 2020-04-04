@@ -6,7 +6,7 @@ import http.{ReqCompleter, ResponseObj}
 import http.ResponseObj.Just
 import http.domain.AccResponse
 import com.twitter.finagle.{http => fhttp}
-import ru.activity.hub.api.infrastructure.logging.LoggingImpl
+import ru.activity.hub.api.infrastructure.logging.{Logging, LoggingImpl}
 import ru.tinkoff.tschema.finagle.tethysInstances.tethysEncodeComplete
 import ru.tinkoff.tschema.finagle._
 import tethys.JsonWriter
@@ -17,7 +17,7 @@ import scala.util.control.NoStackTrace
 
 object HttpTask {
   type HttpTask[A] = ZIO[Context, Throwable, A]
-  implicit val logging = new LoggingImpl[HttpTask]
+  implicit def logging(implicit source: sourcecode.FullName): Logging[HttpTask] = new LoggingImpl[HttpTask](source.value)
 
   object HttpContextMissed extends Throwable with NoStackTrace
   case class Rejected(rejection: Rejection) extends Throwable with NoStackTrace

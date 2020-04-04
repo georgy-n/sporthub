@@ -146,6 +146,8 @@ val dependencies = Seq(
   "ru.tinkoff" %% "typed-schema-finagle-tethys" % versions.typedSchema excludeAll exclusions.findBugs,
   "ru.tinkoff" %% "typed-schema-finagle-common" % versions.typedSchema excludeAll (exclusions.findBugs, exclusions.catsCore),
 
+  "org.typelevel" %% "mouse" % "0.24",
+
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.1"),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)

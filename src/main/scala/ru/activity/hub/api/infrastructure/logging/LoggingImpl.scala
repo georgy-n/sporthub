@@ -3,8 +3,8 @@ package ru.activity.hub.api.infrastructure.logging
 import cats.effect.Sync
 import org.slf4j.LoggerFactory
 
-class LoggingImpl[F[_]: Sync] extends Logging[F] {
-  private val logger = LoggerFactory.getLogger("ru.activity.hub.api.infrastructure.logging.LoggingImpl")
+class LoggingImpl[F[_]: Sync](name: String) extends Logging[F] {
+  private val logger = LoggerFactory.getLogger(name)
 
   override def info(message: String): F[Unit] = Sync[F].delay(logger.info(message))
 

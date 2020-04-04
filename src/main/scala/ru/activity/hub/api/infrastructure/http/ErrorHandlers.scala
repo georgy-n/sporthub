@@ -29,7 +29,7 @@ object ErrorHandlers {
 
   // you can handle kinds of errors here
   def handle(err: Throwable): HttpTask[Response] = err match {
-    case Rejected(rej) => errorResponseOf(rejectionMessage(rej), "404", None, Status.NotFound)
+    case Rejected(rej) => errorResponseOf(rejectionMessage(rej), rej.status.code.toString, None, Status.NotFound)
     case _             => errorResponseOf(SystemError, "500", None, Status.InternalServerError)
   }
 
@@ -40,14 +40,15 @@ object ErrorHandlers {
       ResponseObj.error(ErrorPayload(msg, code, info), trackingId).asJson, status
     )
 
-  private def rejectionMessage(rej: Rejection): String =
+  private def rejectionMessage(rej: Rejection): String = {
     if (rej.missing.nonEmpty)
       MissingQueryParamError + rej.missing.map(_.name).mkString(" ", ",", "")
     else if (rej.malformed.nonEmpty)
       MalformedQueryParamError + rej.malformed.map(p => s"${p.name}: ${p.error}").mkString(" ", ",", "")
-    else if (rej.unauthorized)
+    else if (rej.status == Status.Unauthorized)
       UnauthorizedError
     else if (rej.path =!= "" || rej.wrongMethod.nonEmpty)
       NotFoundError
     else UnhandledError
+  }
 }

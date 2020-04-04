@@ -2,44 +2,29 @@ package ru.activity.hub.api.components.handlers.users
 
 import cats.Monad
 import cats.effect.Sync
-import cats.syntax.applicative._
 import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter, _}
 import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.services.user.UserModule
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
-import ru.tinkoff.tschema.finagle.Authorization.Bearer
+import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.tinkoff.tschema.finagle._
-import ru.tinkoff.tschema.finagle.util.Unapply
 import ru.tinkoff.tschema.syntax._
-import ru.tinkoff.tschema.finagle.tethysInstances._
-
-import Serve.bearerAuthServe
-import com.twitter.finagle.http.Response
 import tethys._
 import tethys.derivation.semiauto._
-import shapeless.{HNil, Witness}
 
 
 final class UserHandlers[
-  F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter](userModule: UserModule[F])
+  F[_]: Sync,
+  HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter: SessionManager[*[_], User]
+](userModule: UserModule[F])
   extends HttpModule[HttpF] {
-
-
-  implicit val userAuth2: Authorization[Bearer, HttpF, User] = SimpleAuth {
-    case BearerToken(users(user)) => user
-  }
+  import ru.activity.hub.api.components.handlers.Auth.userAuth2
 
   override val entry = Entry(MkService[HttpF](api)(handler))
 
-  val stubu = User(User.Id("stub"), "", "", "")
 
   implicit val userWriter: JsonObjectWriter[User] = jsonWriter[User]
 
-  val users = Unapply(
-    Map(
-      "123456" -> User(User.Id("1"), "client", "diamond card", "premium subscription")
-    )
-  )
 
   def api =
     prefix('user) |>
