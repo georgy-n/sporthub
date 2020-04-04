@@ -6,11 +6,11 @@ import zio._
 import zio.interop.catz._
 import zio.interop.twitter._
 import cats.effect.Resource
+import com.twitter.finagle.http.filter.CorsFilter
 import com.twitter.finagle.http.{Request, Response}
 import ru.activity.hub.api.configs.HttpConfig
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
 import ru.activity.hub.api.infrastructure.HttpTask._
-
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
 
 final case class HttpComponent(public: ListeningServer)
@@ -31,7 +31,7 @@ object HttpComponent {
              service: Service[Request, Response],
              port: Int): Resource[MainTask, ListeningServer] =
       Resource.make[MainTask, ListeningServer](
-        ZIO.effect(server.serve(":" + port, service))
+        ZIO.effect(server.serve(":" + port, CorsFilter(methods = "GET, POST, OPTIONS") andThen service))
       )(ls => Task.fromTwitterFuture(Task.effect(ls.close())))
 
     for {

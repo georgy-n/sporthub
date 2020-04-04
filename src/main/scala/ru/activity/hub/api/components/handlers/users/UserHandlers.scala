@@ -29,9 +29,9 @@ final class UserHandlers[
   def api =
     prefix('user) |>
         (
+          get |>
           operation('auth) |>
           bearerAuth[Option[User]]('users, 'user) |>
-          get |>
           $$$[User]
           )
 
