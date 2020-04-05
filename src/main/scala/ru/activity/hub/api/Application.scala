@@ -19,7 +19,7 @@ class Application {
     for {
       configs <- liftF(ConfigComponent.build[MainTask])
       executors <- ExecutionComponent.build[MainTask]
-      implicit0(session: SessionManager[HttpTask, User]) <- SessionComponent.build[HttpTask]
+      implicit0(session: SessionManager[HttpTask, User.Id]) <- SessionComponent.build[HttpTask]
       db <- DatabaseComponent.build[MainTask]
       services <- liftF(ServicesComponent.build[MainTask](db))
       _ <- HttpComponent.build(

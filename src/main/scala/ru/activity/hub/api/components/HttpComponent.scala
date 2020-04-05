@@ -31,7 +31,7 @@ object HttpComponent {
              service: Service[Request, Response],
              port: Int): Resource[MainTask, ListeningServer] =
       Resource.make[MainTask, ListeningServer](
-        ZIO.effect(server.serve(":" + port, CorsFilter(methods = "GET, POST, OPTIONS") andThen service))
+        ZIO.effect(server.serve(":" + port, CorsFilter(methods = "GET, POST, OPTIONS")  andThen service))
       )(ls => Task.fromTwitterFuture(Task.effect(ls.close())))
 
     for {
