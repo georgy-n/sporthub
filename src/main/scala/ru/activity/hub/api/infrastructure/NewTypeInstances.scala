@@ -2,9 +2,9 @@ package ru.activity.hub.api.infrastructure
 
 import doobie.util.Meta
 import io.estatico.newtype.{BaseNewType, Coercible}
+import ru.activity.hub.api.services.activity.domain.Activity
 import ru.activity.hub.api.services.domain.User
 import ru.tinkoff.tschema.param.{ParamSource, SingleParam}
-import shapeless.LowPriority
 import tethys.writers.KeyWriter
 import tethys.{JsonReader, JsonWriter}
 
@@ -46,4 +46,7 @@ trait LowPriorityInstances {
 object DoobieInstances extends LowPriorityInstances {
   implicit val idMeta: Meta[User.Id] =
     Meta.StringMeta.imap(User.Id(_))(_.id)
+
+  implicit val activityIdMeta: Meta[Activity.Id] =
+    Meta.IntMeta.imap(Activity.Id(_))(_.id)
 }

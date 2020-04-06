@@ -14,6 +14,7 @@ object SessionComponent {
   def build[F[_]: Sync](implicit logg: Logging[F]): Resource[F, SessionManager[F, User.Id]] = liftF {
     for {
       sessionManager <- Sync[F].delay(new SessionManagerImpl[F, User.Id])
+    _ <- sessionManager.set("123", User.Id("1"))
     } yield sessionManager
   }
 }

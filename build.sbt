@@ -135,7 +135,7 @@ val dependencies = Seq(
   "com.tethys-json" %% "tethys-core"       % versions.tethys,
   "com.tethys-json" %% "tethys-jackson"    % versions.tethys,
   "com.tethys-json" %% "tethys-derivation" % versions.tethys,
-
+  "com.tethys-json" %% "tethys-enumeratum" % versions.tethys,
   //typedSchema
   "ru.tinkoff" %% "typed-schema-finagle" % versions.typedSchema excludeAll exclusions.findBugs,
   "ru.tinkoff" %% "typed-schema-finagle-zio" % versions.typedSchema excludeAll (

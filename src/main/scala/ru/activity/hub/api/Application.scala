@@ -3,6 +3,7 @@ package ru.activity.hub.api
 import cats.effect.Resource
 import cats.effect.Resource.liftF
 import ru.activity.hub.api.components.HttpComponent.Modules
+import ru.activity.hub.api.components.handlers.activity.ActivityHandlers
 import ru.activity.hub.api.components.handlers.system.SystemModule
 import ru.activity.hub.api.components.handlers.users.UserHandlers
 import ru.activity.hub.api.components.{ConfigComponent, DatabaseComponent, ExecutionComponent, HttpComponent, ServicesComponent, SessionComponent}
@@ -24,7 +25,10 @@ class Application {
       services <- liftF(ServicesComponent.build[MainTask](db))
       _ <- HttpComponent.build(
         Modules(
-          new SystemModule[MainTask, HttpTask] :: new UserHandlers[MainTask, HttpTask](services.userModule) :: Nil
+          new SystemModule[MainTask, HttpTask] ::
+          new UserHandlers[MainTask, HttpTask](services.userModule) ::
+          new ActivityHandlers[MainTask, HttpTask](services.activityModule) ::
+            Nil
         )
       )(
         configs.config.httpConfig,

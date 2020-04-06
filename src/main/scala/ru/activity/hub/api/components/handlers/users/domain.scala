@@ -8,8 +8,11 @@ object domain {
   case class LoginResponse(session: String)
   case class RegistrationRequest(login: String, password: String, firstName: String, secondName: String)
 
+  case class Done()
+
   implicit val registrationReqReader: JsonReader[RegistrationRequest] = jsonReader[RegistrationRequest]
   implicit val loginReqReader: JsonReader[LoginRequest] = jsonReader[LoginRequest]
   implicit val loginRespWriter: JsonObjectWriter[LoginResponse] = jsonWriter[LoginResponse]
+
 
 }
