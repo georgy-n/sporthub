@@ -27,7 +27,5 @@ class UserServiceImpl[F[_]](userRepository: UserRepository[F])(
       user      <- me.fromOption(maybeUser, ServiceError(s"неправильный логин или пароль"))
     } yield user
 
-  override def logout(userId: User.Id): F[Done] = ???
-
   override def registration(req: RegistrationRequest): F[User] = userRepository.saveUser(req)
 }

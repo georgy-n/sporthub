@@ -62,9 +62,9 @@ final class UserHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_],
         _ <- sm.set(session, user.id)
       } yield LoginResponse(session)
 
-    def personalInfo(userId: User.Id): F[User] = ???
+    def personalInfo(userId: User.Id): F[User] = userModule.userService.getUser(userId)
 
-    def logout(userId: User.Id): F[Done] = ???
+    def logout(userId: User.Id): F[Done] = sm.remove(userId).map(_ => Done())
 
     def registration(body: RegistrationRequest): F[User] = userModule.userService.registration(body)
   }
