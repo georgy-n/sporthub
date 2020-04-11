@@ -10,10 +10,10 @@ import ru.activity.hub.api.services.activity.domain.Activity
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
 
-final class ActivityHandlers[
-  F[_]: Sync,
-  HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter: SessionManager[*[_], User.Id]
-](activityModule: ActivityModule[F]) extends HttpModule[HttpF] {
+final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter](
+    activityModule: ActivityModule[F]
+)(implicit sm: SessionManager[F, User.Id])
+  extends HttpModule[HttpF] {
   import ru.activity.hub.api.components.handlers.Auth.userAuth2
   import ru.activity.hub.api.components.handlers.activity.domain._
 
@@ -23,14 +23,13 @@ final class ActivityHandlers[
     prefix('activity) |> (
       (
         get |>
-          operation('getAll) |>
-          bearerAuth[User.Id]('users, 'userId) |>
-          $$$[List[Activity]]
-        )
+        operation('getAll) |>
+        bearerAuth[User.Id]('users, 'userId) |>
+        $$$[List[Activity]]
       )
+    )
 
   object handler {
     def getAll(userId: User.Id): F[List[Activity]] = activityModule.activityService.getAllActivities()
   }
 }
-

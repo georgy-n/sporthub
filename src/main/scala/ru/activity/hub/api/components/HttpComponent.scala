@@ -6,7 +6,7 @@ import zio._
 import zio.interop.catz._
 import zio.interop.twitter._
 import cats.effect.Resource
-import com.twitter.finagle.http.filter.CorsFilter
+import com.twitter.finagle.http.filter.{Cors, CorsFilter}
 import com.twitter.finagle.http.{Request, Response}
 import ru.activity.hub.api.configs.HttpConfig
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
@@ -24,6 +24,15 @@ object HttpComponent {
   ): Resource[MainTask, HttpComponent] = {
     implicit val r = httpRuntime
 
+    val cors = new Cors.HttpFilter(
+      Cors.Policy(
+        allowsOrigin = _ => Some("*"),
+        allowsMethods = _ => Some(List("GET", "POST", "OPTIONS")),
+        allowsHeaders = _ => Some(List("Authorization", "Content-Type", "Accept", "X-Requested-With", "remember-me")),
+        exposedHeaders = List()
+      )
+    )
+
     def public: Service[Request, Response] =
       HttpService.make(modules.public)
 
@@ -31,7 +40,7 @@ object HttpComponent {
              service: Service[Request, Response],
              port: Int): Resource[MainTask, ListeningServer] =
       Resource.make[MainTask, ListeningServer](
-        ZIO.effect(server.serve(":" + port, CorsFilter(methods = "GET, POST, OPTIONS")  andThen service))
+        ZIO.effect(server.withNoHttp2.serve(":" + port, cors(_, service)))
       )(ls => Task.fromTwitterFuture(Task.effect(ls.close())))
 
     for {

@@ -6,9 +6,11 @@ import http.{ReqCompleter, ResponseObj}
 import http.ResponseObj.Just
 import http.domain.AccResponse
 import com.twitter.finagle.{http => fhttp}
+import ru.activity.hub.api.infrastructure.MainTask.MainTask
 import ru.activity.hub.api.infrastructure.logging.{Logging, LoggingImpl}
 import ru.tinkoff.tschema.finagle.tethysInstances.tethysEncodeComplete
 import ru.tinkoff.tschema.finagle._
+import ru.tinkoff.tschema.finagle.routing.ZioRouting
 import tethys.JsonWriter
 import zio.ZIO
 import zio.interop.catz._
@@ -21,6 +23,8 @@ object HttpTask {
 
   object HttpContextMissed extends Throwable with NoStackTrace
   case class Rejected(rejection: Rejection) extends Throwable with NoStackTrace
+
+  implicit val stubLift = ZioRouting.zioRouted
 
   implicit val zioRouted = new RoutedPlus[HttpTask]
   with LiftHttp[HttpTask, HttpTask] {
