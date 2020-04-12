@@ -7,6 +7,7 @@ import doobie._
 import doobie.implicits._
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
+import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
 import ru.activity.hub.api.services.activity.repo.ActivityRepositoryImpl.CategoryRaw
 
 class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: Bracket[F, Throwable])
@@ -26,18 +27,36 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
 
   def getCategories: F[List[Category]] =
     for {
-      listCat <- sql"""select
-            category_name,
-            subcategory_name
-          from category
-          inner join subcategory on subcategory.p_category_id=category.category_id"""
+      listCat <- sql"""select p_category_name, subcategory_name from subcategory"""
         .query[CategoryRaw]
         .to[List]
         .transact(transactor)
-      result = listCat.groupBy(_.name).mapValues(_.map(_.subCategory)).toList.map(v=> Category(v._1, v._2))
+      result = listCat.groupBy(_.name).mapValues(_.map(_.subCategory)).toList.map(v => Category(v._1, v._2))
     } yield result
-}
 
+  def saveActivityOffer(offer: ActivityOffer): F[Activity] =
+    sql""" INSERT INTO activity
+           (
+              activity_category,
+              activity_subcategory,
+              activity_description,
+              activity_owner,
+              activity_count_person
+            )
+           VALUES (${offer.category}, ${offer.subCategory}, ${offer.description}, ${offer.ownerId}, ${offer.countPerson})
+         """.update
+      .withUniqueGeneratedKeys[Activity](
+        "activity_id",
+        "activity_category",
+        "activity_subcategory",
+        "activity_description",
+        "activity_owner",
+        "activity_count_person",
+        "activity_status"
+      )
+      .transact(transactor)
+
+}
 
 object ActivityRepositoryImpl {
   case class CategoryRaw(name: Category.Name, subCategory: SubCategory.Name)

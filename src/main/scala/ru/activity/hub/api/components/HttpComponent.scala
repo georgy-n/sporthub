@@ -6,7 +6,7 @@ import zio._
 import zio.interop.catz._
 import zio.interop.twitter._
 import cats.effect.Resource
-import com.twitter.finagle.http.filter.{Cors, CorsFilter}
+import com.twitter.finagle.http.filter.Cors
 import com.twitter.finagle.http.{Request, Response}
 import ru.activity.hub.api.configs.HttpConfig
 import ru.activity.hub.api.infrastructure.HttpTask.HttpTask

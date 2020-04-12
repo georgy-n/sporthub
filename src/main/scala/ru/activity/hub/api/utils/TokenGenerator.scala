@@ -6,8 +6,6 @@ import cats.syntax.all._
 import ru.activity.hub.api.services.domain.User
 
 object TokenGenerator {
-  import java.security.MessageDigest
-  import java.security.NoSuchAlgorithmException
 
   val MAGIC_KEY = "MAGIC_KEY"
 

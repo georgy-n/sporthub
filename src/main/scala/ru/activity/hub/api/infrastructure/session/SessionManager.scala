@@ -28,9 +28,9 @@ class SessionManagerImpl[F[_]: Sync, T](implicit log: Logging[F]) extends Sessio
 
   override def remove(userId: T): F[Unit] = Sync[F].delay {
     _storage.find {
-      case (s, u) => u == userId
+      case (_, u) => u == userId
     }.map {
-      case (s, u) => _storage.remove(s)
+      case (s, _) => _storage.remove(s)
     }
   }
 }

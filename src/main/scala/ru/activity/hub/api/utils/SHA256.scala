@@ -11,7 +11,7 @@ object SHA256 {
         1,
         MessageDigest
           .getInstance("SHA-256")
-          .digest("some string".getBytes("UTF-8"))
+          .digest(string.getBytes("UTF-8"))
       )
     )
 }

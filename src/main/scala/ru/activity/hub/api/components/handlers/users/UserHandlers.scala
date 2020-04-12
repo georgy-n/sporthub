@@ -6,7 +6,6 @@ import cats.syntax.all._
 import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter, _}
 import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.services.user.UserModule
-import ru.activity.hub.api.infrastructure.NewTypeInstances._
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.utils.TokenGenerator
 import ru.tinkoff.tschema.finagle._
