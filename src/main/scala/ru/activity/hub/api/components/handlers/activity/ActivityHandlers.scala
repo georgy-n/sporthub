@@ -6,7 +6,7 @@ import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter,
 import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.activity.{ActivityModule, ActivityService}
-import ru.activity.hub.api.services.activity.domain.Activity
+import ru.activity.hub.api.services.activity.domain.{Activity, Category}
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
 
@@ -27,9 +27,14 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
         bearerAuth[User.Id]('users, 'userId) |>
         $$$[List[Activity]]
       )
+    ) <|> (
+      get |>
+        operation('getCategories) |>
+        $$$[List[Category]]
     )
 
   object handler {
-    def getAll(userId: User.Id): F[List[Activity]] = activityModule.activityService.getAllActivities()
+    def getAll(userId: User.Id): F[List[Activity]] = activityModule.activityService.getAllActivities
+    def getCategories: F[List[Category]] = activityModule.activityService.getCategories
   }
 }

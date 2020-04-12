@@ -2,7 +2,7 @@ package ru.activity.hub.api.infrastructure
 
 import doobie.util.Meta
 import io.estatico.newtype.{BaseNewType, Coercible}
-import ru.activity.hub.api.services.activity.domain.Activity
+import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.services.domain.User
 import ru.tinkoff.tschema.param.{ParamSource, SingleParam}
 import tethys.writers.KeyWriter
@@ -49,4 +49,10 @@ object DoobieInstances extends LowPriorityInstances {
 
   implicit val activityIdMeta: Meta[Activity.Id] =
     Meta.IntMeta.imap(Activity.Id(_))(_.id)
+
+  implicit val categoryNameMeta: Meta[Category.Name] =
+    Meta.StringMeta.imap(Category.Name(_))(_.value)
+
+  implicit val subCategoryNameMeta: Meta[SubCategory.Name] =
+    Meta.StringMeta.imap(SubCategory.Name(_))(_.value)
 }

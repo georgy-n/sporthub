@@ -9,19 +9,25 @@ object domain {
 
   sealed trait ActivityStatus extends EnumEntry
   case object ActivityStatus extends Enum[ActivityStatus] with TethysEnum[ActivityStatus] {
-    case object Open extends ActivityStatus
+    case object Open   extends ActivityStatus
     case object Closed extends ActivityStatus
 
     val values = findValues
   }
 
-  case class Category(name: String)
-  case class SubCategory(name: String)
+  object Category {
+    @newtype case class Name(value: String)
+  }
+  object SubCategory {
+    @newtype case class Name(value: String)
+  }
+
+  case class Category(name: Category.Name, subCategories: List[SubCategory.Name])
 
   case class Activity(
       id: Activity.Id,
-      category: Category,
-      subCategory: SubCategory,
+      category: Category.Name,
+      subCategory: SubCategory.Name,
       description: String,
       owner: User.Id,
       countPerson: Int,
