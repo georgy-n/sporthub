@@ -1,5 +1,7 @@
 package ru.activity.hub.api.services.activity.repo
 
+import java.time.LocalDateTime
+
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
 import ru.activity.hub.api.services.domain.User
@@ -16,6 +18,7 @@ object ActivityRepository {
       category: Category.Name,
       subCategory: SubCategory.Name,
       description: String,
-      countPerson: Int
+      countPerson: Int,
+      date: LocalDateTime
   )
 }

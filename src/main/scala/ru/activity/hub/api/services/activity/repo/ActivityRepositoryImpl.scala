@@ -5,6 +5,9 @@ import cats.syntax.all._
 import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
+import doobie.implicits.javatime._
+//import doobie.implicits.javasql._
+
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
@@ -20,7 +23,8 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
             activity_description,
             activity_owner,
             activity_count_person,
-            activity_status from activity"""
+            activity_status
+            from activity"""
       .query[Activity]
       .to[List]
       .transact(transactor)
@@ -41,9 +45,17 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
               activity_subcategory,
               activity_description,
               activity_owner,
-              activity_count_person
+              activity_count_person,
+              activity_date
             )
-           VALUES (${offer.category}, ${offer.subCategory}, ${offer.description}, ${offer.ownerId}, ${offer.countPerson})
+           VALUES (
+              ${offer.category},
+              ${offer.subCategory},
+              ${offer.description},
+              ${offer.ownerId},
+              ${offer.countPerson},
+              ${offer.date}
+          )
          """.update
       .withUniqueGeneratedKeys[Activity](
         "activity_id",
@@ -52,7 +64,8 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
         "activity_description",
         "activity_owner",
         "activity_count_person",
-        "activity_status"
+        "activity_status",
+        "activity_date"
       )
       .transact(transactor)
 

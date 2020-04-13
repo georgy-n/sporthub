@@ -7,7 +7,7 @@ import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.activity.ActivityModule
-import ru.activity.hub.api.services.activity.ActivityService.ActivityOfferRequest
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category}
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
@@ -40,13 +40,18 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
         bearerAuth[User.Id]('users, 'userId) |>
         reqBody[ActivityOfferRequest] |>
         $$$[Activity]
-      )
+      ) <|> (
+        get |>
+          operation('search) |>
+          queryParam[Filters]("filters") |>
+          $$$[Filters]
+        )
     )
   object handler {
     def getAll(userId: User.Id): F[List[Activity]] = activityModule.activityService.getAllActivities
     def getCategories: F[List[Category]]           = activityModule.activityService.getCategories
     def addActivityOffer(userId: User.Id, body: ActivityOfferRequest): F[Activity] =
       activityModule.activityService.addActivityOffer(body, userId)
-
+    def search(filters: Filters): F[Filters] = Sync[F].delay(filters)
   }
 }

@@ -1,5 +1,7 @@
 package ru.activity.hub.api.services.activity
 
+import java.time.LocalDateTime
+
 import ru.activity.hub.api.services.activity.ActivityService.ActivityOfferRequest
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.services.domain.User
@@ -22,6 +24,9 @@ object ActivityService {
       category: Category.Name,
       subCategory: SubCategory.Name,
       description: String,
-      countPerson: Int
+      countPerson: Int,
+      date: LocalDateTime
   )
+
+  case class Filters(category: Option[String])
 }

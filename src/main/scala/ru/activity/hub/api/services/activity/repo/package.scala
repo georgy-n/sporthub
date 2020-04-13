@@ -1,6 +1,6 @@
 package ru.activity.hub.api.services.activity
 
-import doobie.util.Meta
+import doobie.util.meta.Meta
 import ru.activity.hub.api.services.activity.domain.ActivityStatus
 
 package object repo {

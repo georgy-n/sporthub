@@ -22,7 +22,7 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(implicit log:
 
   def addActivityOffer(req: ActivityOfferRequest, userId: User.Id): F[Activity] =
     for {
-      _ <- log.info("prepare to save")
+      _ <- log.info(s"prepare to save $req")
      act <-  repo.saveActivityOffer(req.into[ActivityOffer].withFieldConst(_.ownerId, userId).transform)
     } yield act
 }

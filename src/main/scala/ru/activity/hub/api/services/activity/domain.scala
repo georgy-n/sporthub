@@ -1,8 +1,11 @@
 package ru.activity.hub.api.services.activity
 
+import java.time.{Instant, LocalDateTime}
+
 import io.estatico.newtype.macros.newtype
 import enumeratum.{Enum, EnumEntry}
 import ru.activity.hub.api.services.domain.User
+import ru.activity.hub.api.utils.Time
 import tethys.enumeratum._
 
 object domain {
@@ -31,7 +34,8 @@ object domain {
       description: String,
       owner: User.Id,
       countPerson: Int,
-      status: ActivityStatus
+      status: ActivityStatus,
+      date: LocalDateTime
   )
 
   object Activity {

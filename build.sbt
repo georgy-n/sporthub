@@ -70,7 +70,7 @@ val versions = new {
   val typedSchema = "0.11.0"
   val tethys = "0.10.0"
   val scalaLogging = "3.9.2"
-  val doobie = "0.8.2"
+  val doobie = "0.9.0"
   val newType = "0.4.3"
 
   val zio = new {

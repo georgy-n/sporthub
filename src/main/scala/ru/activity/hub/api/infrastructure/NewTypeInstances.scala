@@ -1,6 +1,7 @@
 package ru.activity.hub.api.infrastructure
 
-import doobie.util.Meta
+
+import doobie.util.meta.Meta
 import io.estatico.newtype.{BaseNewType, Coercible}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.services.domain.User
