@@ -2,7 +2,7 @@ package ru.activity.hub.api.services.activity
 
 import java.time.LocalDateTime
 
-import ru.activity.hub.api.services.activity.ActivityService.ActivityOfferRequest
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.services.domain.User
 
@@ -17,6 +17,9 @@ trait ActivityService[F[_]] {
   def getCategories: F[List[Category]]
 
   def addActivityOffer(req: ActivityOfferRequest, userId: User.Id): F[Activity]
+
+  def search(filters: Filters): F[List[Activity]]
+
 }
 
 object ActivityService {
@@ -28,5 +31,5 @@ object ActivityService {
       date: LocalDateTime
   )
 
-  case class Filters(category: Option[String])
+  case class Filters(category: Option[String], subCategory: Option[String])
 }

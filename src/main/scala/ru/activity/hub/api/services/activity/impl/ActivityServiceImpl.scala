@@ -4,7 +4,7 @@ import cats.effect.Sync
 import io.scalaland.chimney.dsl._
 import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.activity.ActivityService
-import ru.activity.hub.api.services.activity.ActivityService.ActivityOfferRequest
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category}
 import ru.activity.hub.api.services.activity.repo.ActivityRepository
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
@@ -25,4 +25,9 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(implicit log:
       _ <- log.info(s"prepare to save $req")
      act <-  repo.saveActivityOffer(req.into[ActivityOffer].withFieldConst(_.ownerId, userId).transform)
     } yield act
+
+  def search(filters: Filters): F[List[Activity]] = {
+    repo.findByFilters(filters)
+  }
+
 }

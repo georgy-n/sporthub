@@ -6,7 +6,8 @@ import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
 import doobie.implicits.javatime._
-//import doobie.implicits.javasql._
+import ru.activity.hub.api.services.activity.ActivityService.Filters
+import doobie.Fragments.whereAndOpt
 
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
@@ -23,7 +24,8 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
             activity_description,
             activity_owner,
             activity_count_person,
-            activity_status
+            activity_status,
+            activity_date
             from activity"""
       .query[Activity]
       .to[List]
@@ -68,6 +70,27 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
         "activity_date"
       )
       .transact(transactor)
+
+  def findByFilters(filters: Filters): F[List[Activity]] = {
+
+    val byCategory = filters.category.map(cat => fr"activity_category=${cat}")
+    val bySubCategory = filters.subCategory.map(cat => fr"activity_subcategory=${cat}")
+
+    val fragment   = fr"""select
+            activity_id,
+            activity_category,
+            activity_subcategory,
+            activity_description,
+            activity_owner,
+            activity_count_person,
+            activity_status,
+            activity_date
+            from activity""" ++ whereAndOpt(byCategory) ++ whereAndOpt(bySubCategory)
+    fragment
+      .query[Activity]
+      .to[List]
+      .transact(transactor)
+  }
 
 }
 

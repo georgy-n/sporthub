@@ -27,7 +27,6 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
       (
         get |>
         operation('getAll) |>
-        bearerAuth[User.Id]('users, 'userId) |>
         $$$[List[Activity]]
       )
       <|> (
@@ -44,14 +43,14 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
         get |>
           operation('search) |>
           queryParam[Filters]("filters") |>
-          $$$[Filters]
+          $$$[List[Activity]]
         )
     )
   object handler {
-    def getAll(userId: User.Id): F[List[Activity]] = activityModule.activityService.getAllActivities
+    def getAll(): F[List[Activity]] = activityModule.activityService.getAllActivities
     def getCategories: F[List[Category]]           = activityModule.activityService.getCategories
     def addActivityOffer(userId: User.Id, body: ActivityOfferRequest): F[Activity] =
       activityModule.activityService.addActivityOffer(body, userId)
-    def search(filters: Filters): F[Filters] = Sync[F].delay(filters)
+    def search(filters: Filters): F[List[Activity]] = activityModule.activityService.search(filters)
   }
 }
