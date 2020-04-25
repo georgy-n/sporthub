@@ -2,6 +2,7 @@ package ru.activity.hub.api.components.handlers.activity
 
 import cats.Monad
 import cats.effect.Sync
+import ru.activity.hub.api.components.handlers.users.domain.Done
 import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter, _}
 import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
@@ -19,6 +20,7 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
   extends HttpModule[HttpF] {
   import ru.activity.hub.api.components.handlers.Auth.userAuth2
   import ru.activity.hub.api.components.handlers.activity.domain._
+  import ru.activity.hub.api.components.handlers.tethysRW._
 
   override val entry = Entry(MkService[HttpF](api)(handler))
 
@@ -41,23 +43,36 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
         $$$[Activity]
       ) <|> (
         get |>
-          operation('search) |>
-          queryParam[Filters]("filters") |>
-          $$$[List[Activity]]
-        ) <|> (
+        operation('search) |>
+        queryParam[Filters]("filters") |>
+        $$$[List[Activity]]
+      ) <|> (
         get |>
-          operation('activityInfo) |>
-          queryParam[Activity.Id]("activityId") |>
-          $$$[ActivityInfo]
-        )
+        operation('activityInfo) |>
+        queryParam[Activity.Id]("activityId") |>
+        $$$[ActivityInfo]
+      ) <|> (
+        post |>
+        operation('subscribe) |>
+        bearerAuth[User.Id]('users, 'userId) |>
+        queryParam[Activity.Id]("activityId") |>
+        $$$[Done]
       )
+    )
   object handler {
-    def getAll(): F[List[Activity]] = activityModule.activityService.getAllActivities
-    def getCategories: F[List[Category]]           = activityModule.activityService.getCategories
+    def getAll(): F[List[Activity]]      = activityModule.activityService.getAllActivities
+
+    def getCategories: F[List[Category]] = activityModule.activityService.getCategories
+
     def addActivityOffer(userId: User.Id, body: ActivityOfferRequest): F[Activity] =
       activityModule.activityService.addActivityOffer(body, userId)
+
     def search(filters: Filters): F[List[Activity]] = activityModule.activityService.search(filters)
+
     def activityInfo(activityId: Activity.Id): F[ActivityInfo] =
       activityModule.activityService.getActivityInfo(activityId)
+
+    def subscribe(userId: User.Id, activityId: Activity.Id): F[Done] =
+      activityModule.activityService.subscribe(userId, activityId)
   }
 }

@@ -3,7 +3,6 @@ package ru.activity.hub.api.services.activity.impl
 import cats.MonadError
 import cats.effect.Sync
 import io.scalaland.chimney.dsl._
-
 import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.activity.ActivityService
 import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
@@ -12,6 +11,7 @@ import ru.activity.hub.api.services.activity.repo.ActivityRepository
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
 import ru.activity.hub.api.services.domain.User
 import cats.syntax.all._
+import ru.activity.hub.api.components.handlers.users.domain.Done
 import ru.activity.hub.api.infrastructure.exceptions.ServiceError
 
 class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
@@ -51,4 +51,13 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
         .withFieldConst(_.countFreeSpace, activity.countPerson - participants.length)
         .transform
     } yield activityInfo
+
+  def subscribe(userId: User.Id, activityId: Activity.Id): F[Done] = for {
+    maybeActivity <- repo.findById(activityId)
+    activity      <- me.fromOption(maybeActivity, ServiceError("activity not found"))
+    participants  <- repo.findActivityParticipant(activityId)
+    _ <- me.raiseError(ServiceError("spaces is over")).whenA(activity.countPerson - participants.length < 0)
+    _ <- repo.subscribe(userId, activityId)
+  } yield Done()
+
 }

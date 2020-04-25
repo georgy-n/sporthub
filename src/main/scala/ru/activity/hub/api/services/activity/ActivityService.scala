@@ -2,6 +2,7 @@ package ru.activity.hub.api.services.activity
 
 import java.time.LocalDateTime
 
+import ru.activity.hub.api.components.handlers.users.domain.Done
 import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
 import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, SubCategory}
 import ru.activity.hub.api.services.domain.User
@@ -22,6 +23,7 @@ trait ActivityService[F[_]] {
 
   def getActivityInfo(req: Activity.Id): F[ActivityInfo]
 
+  def subscribe(userId: User.Id, activityId: Activity.Id): F[Done]
 }
 
 object ActivityService {

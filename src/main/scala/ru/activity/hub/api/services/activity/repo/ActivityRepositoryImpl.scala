@@ -7,10 +7,10 @@ import doobie._
 import doobie.implicits._
 import doobie.implicits.javatime._
 import ru.activity.hub.api.services.activity.ActivityService.Filters
-import doobie.Fragments.{whereAndOpt, whereAnd}
+import doobie.Fragments.{whereAnd, whereAndOpt}
 import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
-import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
+import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, Reservation}
 import ru.activity.hub.api.services.activity.repo.ActivityRepositoryImpl.CategoryRaw
 import ru.activity.hub.api.services.domain.User
 
@@ -115,6 +115,16 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
             from reservation where reservation_activity_id=${activityId.id}"""
       .query[User.Id]
       .to[List]
+      .transact(transactor)
+  }
+
+  def subscribe(userId: User.Id, activityId: Activity.Id): F[Reservation] = {
+    sql""" INSERT INTO reservation
+           (reservation_user_id, reservation_activity_id)
+           VALUES (${userId.id}, ${activityId.id})
+         """
+      .update
+      .withUniqueGeneratedKeys[Reservation]("reservation_id", "reservation_user_id", "reservation_activity_id")
       .transact(transactor)
   }
 
