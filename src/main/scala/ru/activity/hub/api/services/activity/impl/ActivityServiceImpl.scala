@@ -60,4 +60,10 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
     _ <- repo.subscribe(userId, activityId)
   } yield Done()
 
+
+  def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Done] = for {
+    _ <- repo.unSubscribe(userId, activityId)
+  } yield Done()
+
+
 }

@@ -16,7 +16,7 @@ trait ActivityRepository[F[_]] {
   def findActivityParticipant(activityId: Activity.Id): F[List[User.Id]]
   def findById(activityId: Activity.Id): F[Option[Activity]]
   def subscribe(userId: User.Id, activityId: Activity.Id): F[Reservation]
-
+  def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Int]
 }
 
 object ActivityRepository {

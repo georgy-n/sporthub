@@ -128,6 +128,12 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
       .transact(transactor)
   }
 
+  def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Int] = {
+    sql""" DELETE from reservation where reservation_user_id=${userId.id} and reservation_activity_id=${activityId.id}
+         """
+      .update.run
+      .transact(transactor)
+  }
 }
 
 object ActivityRepositoryImpl {
