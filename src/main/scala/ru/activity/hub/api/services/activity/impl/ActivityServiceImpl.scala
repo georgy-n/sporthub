@@ -58,6 +58,7 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
     maybeActivity <- repo.findById(activityId)
     activity      <- me.fromOption(maybeActivity, ServiceError("activity not found"))
     participants  <- repo.findActivityParticipant(activityId)
+    _ <- me.raiseError(ServiceError("already subscribed")).whenA(participants.contains(userId))
     _ <- me.raiseError(ServiceError("spaces is over")).whenA(activity.countPerson - participants.length < 0)
     _ <- repo.subscribe(userId, activityId)
   } yield Done()
