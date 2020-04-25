@@ -3,7 +3,7 @@ package ru.activity.hub.api.components.handlers.activity
 import java.time.{Instant, LocalDateTime, ZoneId}
 
 import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
-import ru.activity.hub.api.services.activity.domain.{Activity, ActivityStatus, Category}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, ActivityStatus, Category}
 import ru.activity.hub.api.utils.Time
 import ru.tinkoff.tschema.param.HttpParam
 import tethys.{JsonObjectWriter, JsonReader, JsonWriter}
@@ -18,6 +18,7 @@ object domain {
     .addField("seconds")(dt => dt.atZone(ZoneId.systemDefault()).toInstant.getEpochSecond)
   implicit val dateReader: JsonReader[LocalDateTime] = JsonReader.stringReader.map(t =>LocalDateTime.parse(t))
   implicit val activityWriter: JsonObjectWriter[Activity] = jsonWriter[Activity]
+  implicit val activityInfoWriter: JsonObjectWriter[ActivityInfo] = jsonWriter[ActivityInfo]
   implicit val categoryWriter: JsonObjectWriter[Category] = jsonWriter[Category]
   implicit val activityOfferReader: JsonReader[ActivityOfferRequest] = jsonReader[ActivityOfferRequest]
   implicit val filtersWriter: JsonObjectWriter[Filters] = jsonWriter[Filters]

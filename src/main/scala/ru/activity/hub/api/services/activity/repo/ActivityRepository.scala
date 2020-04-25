@@ -12,6 +12,8 @@ trait ActivityRepository[F[_]] {
   def getCategories: F[List[Category]]
   def saveActivityOffer(offer: ActivityOffer): F[Activity]
   def findByFilters(filters: Filters): F[List[Activity]]
+  def findActivityParticipant(activityId: Activity.Id): F[List[User.Id]]
+  def findById(activityId: Activity.Id): F[Option[Activity]]
 }
 
 object ActivityRepository {

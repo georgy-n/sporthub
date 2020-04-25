@@ -41,4 +41,17 @@ object domain {
   object Activity {
     @newtype case class Id(id: Int)
   }
+
+  case class ActivityInfo(
+      id: Activity.Id,
+      category: Category.Name,
+      subCategory: SubCategory.Name,
+      description: String,
+      owner: User.Id,
+      countPerson: Int,
+      status: ActivityStatus,
+      date: LocalDateTime,
+      countFreeSpace: Int,
+      participants: List[User.Id]
+  )
 }

@@ -8,7 +8,7 @@ import ru.activity.hub.api.infrastructure.NewTypeInstances._
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.activity.ActivityModule
 import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
-import ru.activity.hub.api.services.activity.domain.{Activity, Category}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category}
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
 import ru.tinkoff.tschema.finagle.tethysInstances._
@@ -44,13 +44,20 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
           operation('search) |>
           queryParam[Filters]("filters") |>
           $$$[List[Activity]]
+        ) <|> (
+        get |>
+          operation('activityInfo) |>
+          queryParam[Activity.Id]("activityId") |>
+          $$$[ActivityInfo]
         )
-    )
+      )
   object handler {
     def getAll(): F[List[Activity]] = activityModule.activityService.getAllActivities
     def getCategories: F[List[Category]]           = activityModule.activityService.getCategories
     def addActivityOffer(userId: User.Id, body: ActivityOfferRequest): F[Activity] =
       activityModule.activityService.addActivityOffer(body, userId)
     def search(filters: Filters): F[List[Activity]] = activityModule.activityService.search(filters)
+    def activityInfo(activityId: Activity.Id): F[ActivityInfo] =
+      activityModule.activityService.getActivityInfo(activityId)
   }
 }

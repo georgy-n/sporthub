@@ -7,12 +7,12 @@ import doobie._
 import doobie.implicits._
 import doobie.implicits.javatime._
 import ru.activity.hub.api.services.activity.ActivityService.Filters
-import doobie.Fragments.whereAndOpt
-
-import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
+import doobie.Fragments.{whereAndOpt, whereAnd}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
 import ru.activity.hub.api.services.activity.repo.ActivityRepositoryImpl.CategoryRaw
+import ru.activity.hub.api.services.domain.User
 
 class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: Bracket[F, Throwable])
   extends ActivityRepository[F] {
@@ -75,7 +75,6 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
 
     val byCategory = filters.category.map(cat => fr"activity_category=${cat}")
     val bySubCategory = filters.subCategory.map(cat => fr"activity_subcategory=${cat}")
-
     val fragment   = fr"""select
             activity_id,
             activity_category,
@@ -88,6 +87,33 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
             from activity""" ++ whereAndOpt(byCategory) ++ whereAndOpt(bySubCategory)
     fragment
       .query[Activity]
+      .to[List]
+      .transact(transactor)
+  }
+
+  def findById(activityId: Activity.Id): F[Option[Activity]] = {
+    val fragment   = fr"""select
+            activity_id,
+            activity_category,
+            activity_subcategory,
+            activity_description,
+            activity_owner,
+            activity_count_person,
+            activity_status,
+            activity_date
+            from activity where activity_id=${activityId.id}"""
+
+    fragment
+      .query[Activity]
+      .option
+      .transact(transactor)
+  }
+
+  def findActivityParticipant(activityId: Activity.Id): F[List[User.Id]] = {
+    sql"""select
+            reservation_user_id
+            from reservation where reservation_activity_id=${activityId.id}"""
+      .query[User.Id]
       .to[List]
       .transact(transactor)
   }
