@@ -73,18 +73,9 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
 
   def findByFilters(filters: Filters): F[List[Activity]] = {
 
-    val byCategory = filters.category.map(cat => fr"activity_category=${cat}")
-    val bySubCategory = filters.subCategory.map(cat => fr"activity_subcategory=${cat}")
-    val fragment   = fr"""select
-            activity_id,
-            activity_category,
-            activity_subcategory,
-            activity_description,
-            activity_owner,
-            activity_count_person,
-            activity_status,
-            activity_date
-            from activity""" ++ whereAndOpt(byCategory) ++ whereAndOpt(bySubCategory)
+    val byCategory    = filters.category.map(cat => fr"activity_category=$cat")
+    val bySubCategory = filters.subCategory.map(cat => fr"activity_subcategory=$cat")
+    val fragment      = activitySelect ++ whereAndOpt(byCategory) ++ whereAndOpt(bySubCategory)
     fragment
       .query[Activity]
       .to[List]
@@ -92,7 +83,46 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
   }
 
   def findById(activityId: Activity.Id): F[Option[Activity]] = {
-    val fragment   = fr"""select
+    val fragment = activitySelect ++ fr"""where activity_id=${activityId.id}"""
+
+    fragment
+      .query[Activity]
+      .option
+      .transact(transactor)
+  }
+
+  def findActivityParticipant(activityId: Activity.Id): F[List[User.Id]] =
+    sql"""select
+            reservation_user_id
+            from reservation where reservation_activity_id=${activityId.id}"""
+      .query[User.Id]
+      .to[List]
+      .transact(transactor)
+
+  def subscribe(userId: User.Id, activityId: Activity.Id): F[Reservation] =
+    sql""" INSERT INTO reservation
+           (reservation_user_id, reservation_activity_id)
+           VALUES (${userId.id}, ${activityId.id})
+         """.update
+      .withUniqueGeneratedKeys[Reservation]("reservation_id", "reservation_user_id", "reservation_activity_id")
+      .transact(transactor)
+
+  def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Int] =
+    sql"""DELETE
+          from reservation
+          where reservation_user_id=${userId.id} and reservation_activity_id=${activityId.id}
+         """.update.run
+      .transact(transactor)
+
+  def getSubscribed(userId: User.Id): F[List[Activity.Id]] =
+    sql"""select
+            reservation_activity_id
+            from reservation where reservation_user_id=${userId.id}"""
+      .query[Activity.Id]
+      .to[List]
+      .transact(transactor)
+
+  private val activitySelect = fr"""select
             activity_id,
             activity_category,
             activity_subcategory,
@@ -101,39 +131,7 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
             activity_count_person,
             activity_status,
             activity_date
-            from activity where activity_id=${activityId.id}"""
-
-    fragment
-      .query[Activity]
-      .option
-      .transact(transactor)
-  }
-
-  def findActivityParticipant(activityId: Activity.Id): F[List[User.Id]] = {
-    sql"""select
-            reservation_user_id
-            from reservation where reservation_activity_id=${activityId.id}"""
-      .query[User.Id]
-      .to[List]
-      .transact(transactor)
-  }
-
-  def subscribe(userId: User.Id, activityId: Activity.Id): F[Reservation] = {
-    sql""" INSERT INTO reservation
-           (reservation_user_id, reservation_activity_id)
-           VALUES (${userId.id}, ${activityId.id})
-         """
-      .update
-      .withUniqueGeneratedKeys[Reservation]("reservation_id", "reservation_user_id", "reservation_activity_id")
-      .transact(transactor)
-  }
-
-  def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Int] = {
-    sql""" DELETE from reservation where reservation_user_id=${userId.id} and reservation_activity_id=${activityId.id}
-         """
-      .update.run
-      .transact(transactor)
-  }
+            from activity"""
 }
 
 object ActivityRepositoryImpl {

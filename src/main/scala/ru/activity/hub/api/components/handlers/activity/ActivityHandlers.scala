@@ -63,6 +63,11 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
           bearerAuth[User.Id]('users, 'userId) |>
           queryParam[Activity.Id]("activityId") |>
           $$$[Done]
+        )<|> (
+        get |>
+          operation('subscribed) |>
+          bearerAuth[User.Id]('users, 'userId) |>
+          $$$[List[Activity]]
         )
     )
   object handler {
@@ -84,5 +89,7 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
     def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Done] =
       activityModule.activityService.unSubscribe(userId, activityId)
 
+    def subscribed(userId: User.Id): F[List[Activity]] =
+      activityModule.activityService.getSubscribedActivity(userId)
   }
 }

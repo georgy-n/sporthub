@@ -2,6 +2,8 @@ package ru.activity.hub.api.services.activity.impl
 
 import cats.MonadError
 import cats.effect.Sync
+import cats.syntax.all._
+import cats.instances.all._
 import io.scalaland.chimney.dsl._
 import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.activity.ActivityService
@@ -65,5 +67,13 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
     _ <- repo.unSubscribe(userId, activityId)
   } yield Done()
 
+  def getSubscribedActivity(userId: User.Id): F[List[Activity]] = for {
+    ids <- repo.getSubscribed(userId)
+    activities <- ids.traverse(loadActivity)
+  } yield activities.flatten
 
+  private def loadActivity(activityId: Activity.Id): F[Option[Activity]] = for {
+    maybeActivity <- repo.findById(activityId)
+    _ <- log.warn(s"cant find activity with id=$activityId").whenA(maybeActivity.isEmpty)
+  } yield maybeActivity
 }

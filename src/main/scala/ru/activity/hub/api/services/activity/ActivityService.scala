@@ -26,6 +26,8 @@ trait ActivityService[F[_]] {
   def subscribe(userId: User.Id, activityId: Activity.Id): F[Done]
 
   def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Done]
+
+  def getSubscribedActivity(userId: User.Id): F[List[Activity]]
 }
 
 object ActivityService {
