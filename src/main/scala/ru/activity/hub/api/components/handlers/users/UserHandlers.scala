@@ -3,14 +3,16 @@ package ru.activity.hub.api.components.handlers.users
 import cats.Monad
 import cats.effect.Sync
 import cats.syntax.all._
+import io.scalaland.chimney.dsl._
 import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter, _}
-import ru.activity.hub.api.services.domain.User
+import ru.activity.hub.api.services.domain.{ShortPersonalInfo, User}
 import ru.activity.hub.api.services.user.UserModule
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.utils.TokenGenerator
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
 import ru.tinkoff.tschema.finagle.tethysInstances._
+import ru.activity.hub.api.infrastructure.NewTypeInstances._
 
 final class UserHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter](
     userModule: UserModule[F]
@@ -36,6 +38,13 @@ final class UserHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_],
         operation('personalInfo) |>
         bearerAuth[User.Id]('users, 'userId) |>
         $$$[User]
+      )
+      <|>
+      (
+        get |>
+        operation('shortPersonalInfo) |>
+        queryParam[User.Id]("userId") |>
+        $$$[ShortPersonalInfo]
       )
       <|>
       (
@@ -66,5 +75,8 @@ final class UserHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_],
     def logout(userId: User.Id): F[Done] = sm.remove(userId).map(_ => Done())
 
     def registration(body: RegistrationRequest): F[User] = userModule.userService.registration(body)
+
+    def shortPersonalInfo(userId: User.Id): F[ShortPersonalInfo] =
+      userModule.userService.getUser(userId).map(_.into[ShortPersonalInfo].transform)
   }
 }

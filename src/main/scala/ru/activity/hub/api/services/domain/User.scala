@@ -7,3 +7,5 @@ object User {
   @newtype case class Id(id: String)
 }
 case class User(id: User.Id, firstName: String, secondName: String, login: String)
+
+case class ShortPersonalInfo(id: User.Id, firstName: String, secondName: String)
