@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 name := "activityHub"
 organization in ThisBuild := "ru.activity.hub.api"
 
-version := "0.1.0"
+version := "1.0.0"
 
 scalaVersion := "2.12.10"
 
