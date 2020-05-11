@@ -7,10 +7,10 @@ import cats.instances.all._
 import io.scalaland.chimney.dsl._
 import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.activity.ActivityService
-import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
-import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category}
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters, SetCommentRequest}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, Comment}
 import ru.activity.hub.api.services.activity.repo.ActivityRepository
-import ru.activity.hub.api.services.activity.repo.ActivityRepository.ActivityOffer
+import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, CommentRequest}
 import ru.activity.hub.api.services.domain.User
 import cats.syntax.all._
 import ru.activity.hub.api.components.handlers.users.domain.Done
@@ -77,4 +77,10 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
     maybeActivity <- repo.findById(activityId)
     _ <- log.warn(s"cant find activity with id=$activityId").whenA(maybeActivity.isEmpty)
   } yield maybeActivity
+
+  def setComment(userId: User.Id, req: SetCommentRequest): F[Comment] =
+    repo.saveComment(req.into[CommentRequest].withFieldConst(_.commentOwner, userId).transform)
+
+  def getComments(activityId: Activity.Id): F[List[Comment]] =
+    repo.findComments(activityId)
 }

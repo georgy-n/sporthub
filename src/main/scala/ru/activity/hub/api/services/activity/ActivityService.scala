@@ -3,8 +3,8 @@ package ru.activity.hub.api.services.activity
 import java.time.LocalDateTime
 
 import ru.activity.hub.api.components.handlers.users.domain.Done
-import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
-import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, SubCategory}
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters, SetCommentRequest}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, Comment, SubCategory}
 import ru.activity.hub.api.services.domain.User
 
 trait ActivityService[F[_]] {
@@ -28,6 +28,10 @@ trait ActivityService[F[_]] {
   def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Done]
 
   def getSubscribedActivity(userId: User.Id): F[List[Activity]]
+
+  def setComment(userId: User.Id, req: SetCommentRequest): F[Comment]
+
+  def getComments(activityId: Activity.Id): F[List[Comment]]
 }
 
 object ActivityService {
@@ -39,5 +43,6 @@ object ActivityService {
       date: LocalDateTime
   )
 
+  case class SetCommentRequest(activityId: Activity.Id, date: LocalDateTime, message: String)
   case class Filters(category: Option[String], subCategory: Option[String])
 }

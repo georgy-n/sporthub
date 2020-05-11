@@ -3,7 +3,7 @@ package ru.activity.hub.api.infrastructure.http
 import cats.instances.string._
 import cats.syntax.all._
 import com.twitter.finagle.http.{Response, Status}
-import ru.activity.hub.api.infrastructure.Context
+import ru.activity.hub.api.infrastructure.{Context, HttpTask}
 import ru.activity.hub.api.infrastructure.HttpTask.{HttpTask, Rejected}
 import ru.activity.hub.api.infrastructure.http.domain._
 import ru.tinkoff.tschema.finagle.Rejection
@@ -36,6 +36,7 @@ object ErrorHandlers {
   private def errorResponseOf(msg: String, code: String, info: Option[Map[String, String]], status: Status): HttpTask[Response] =
     for {
       trackingId  <- ZIO.access[Context](_.trackingId)
+      _ <- HttpTask.logging.error(msg)
     } yield message.jsonResponse(
       ResponseObj.error(ErrorPayload(msg, code, info), trackingId).asJson, status
     )

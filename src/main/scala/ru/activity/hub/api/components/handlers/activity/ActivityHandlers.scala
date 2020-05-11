@@ -8,8 +8,8 @@ import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.activity.ActivityModule
-import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters}
-import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category}
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters, SetCommentRequest}
+import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, Comment}
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
 import ru.tinkoff.tschema.finagle.tethysInstances._
@@ -68,6 +68,17 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
           operation('subscribed) |>
           bearerAuth[User.Id]('users, 'userId) |>
           $$$[List[Activity]]
+        )<|> (
+        get |>
+          operation('comments) |>
+          queryParam[Activity.Id]("activityId") |>
+          $$$[List[Comment]]
+        )<|> (
+        post |>
+          operation('comment) |>
+          bearerAuth[User.Id]('users, 'userId) |>
+          reqBody[SetCommentRequest] |>
+          $$$[Comment]
         )
     )
   object handler {
@@ -91,5 +102,11 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
 
     def subscribed(userId: User.Id): F[List[Activity]] =
       activityModule.activityService.getSubscribedActivity(userId)
+
+    def comments(activityId: Activity.Id): F[List[Comment]] =
+      activityModule.activityService.getComments(activityId)
+
+    def comment(userId: User.Id, body: SetCommentRequest): F[Comment] =
+      activityModule.activityService.setComment(userId, body)
   }
 }

@@ -2,10 +2,9 @@ package ru.activity.hub.api.services.activity.repo
 
 import java.time.LocalDateTime
 
-import ru.activity.hub.api.components.handlers.users.domain.Done
 import ru.activity.hub.api.services.activity.ActivityService.Filters
-import ru.activity.hub.api.services.activity.domain.{Activity, Category, SubCategory}
-import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, Reservation}
+import ru.activity.hub.api.services.activity.domain.{Activity, Category, Comment, SubCategory}
+import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, CommentRequest, Reservation}
 import ru.activity.hub.api.services.domain.User
 
 trait ActivityRepository[F[_]] {
@@ -18,6 +17,8 @@ trait ActivityRepository[F[_]] {
   def subscribe(userId: User.Id, activityId: Activity.Id): F[Reservation]
   def unSubscribe(userId: User.Id, activityId: Activity.Id): F[Int]
   def getSubscribed(userId: User.Id): F[List[Activity.Id]]
+  def findComments(activityId: Activity.Id): F[List[Comment]]
+  def saveComment(comment: CommentRequest): F[Comment]
 }
 
 object ActivityRepository {
@@ -30,4 +31,6 @@ object ActivityRepository {
       countPerson: Int,
       date: LocalDateTime
   )
+  case class CommentRequest(activityId: Activity.Id, commentOwner: User.Id, date: LocalDateTime, message: String)
+
 }

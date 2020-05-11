@@ -1,11 +1,10 @@
 package ru.activity.hub.api.services.activity
 
-import java.time.{Instant, LocalDateTime}
+import java.time.LocalDateTime
 
 import io.estatico.newtype.macros.newtype
 import enumeratum.{Enum, EnumEntry}
 import ru.activity.hub.api.services.domain.User
-import ru.activity.hub.api.utils.Time
 import tethys.enumeratum._
 
 object domain {
@@ -53,5 +52,16 @@ object domain {
       date: LocalDateTime,
       countFreeSpace: Int,
       participants: List[User.Id]
+  )
+
+  object Comment {
+    @newtype case class Id(id: Int)
+  }
+  case class Comment(
+      id: Comment.Id,
+      activityId: Activity.Id,
+      commentOwner: User.Id,
+      date: LocalDateTime,
+      message: String
   )
 }

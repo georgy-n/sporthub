@@ -7,26 +7,17 @@ import doobie._
 import doobie.implicits._
 import doobie.implicits.javatime._
 import ru.activity.hub.api.services.activity.ActivityService.Filters
-import doobie.Fragments.{whereAnd, whereAndOpt}
-import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, SubCategory}
+import doobie.Fragments.whereAndOpt
+import ru.activity.hub.api.services.activity.domain.{Activity, Category, Comment, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
-import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, Reservation}
+import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, CommentRequest, Reservation}
 import ru.activity.hub.api.services.activity.repo.ActivityRepositoryImpl.CategoryRaw
 import ru.activity.hub.api.services.domain.User
 
 class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: Bracket[F, Throwable])
   extends ActivityRepository[F] {
   def getAllActivities: F[List[Activity]] =
-    sql"""select
-            activity_id,
-            activity_category,
-            activity_subcategory,
-            activity_description,
-            activity_owner,
-            activity_count_person,
-            activity_status,
-            activity_date
-            from activity"""
+    activitySelect
       .query[Activity]
       .to[List]
       .transact(transactor)
@@ -122,6 +113,50 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
       .to[List]
       .transact(transactor)
 
+  def saveComment(comment: CommentRequest): F[Comment] =
+    sql""" INSERT INTO comments
+           (
+             comment_message,
+             comment_date,
+             comment_owner_id,
+             comment_activity_id
+            )
+           VALUES (
+              ${comment.message},
+              ${comment.date},
+              ${comment.commentOwner},
+              ${comment.activityId}
+
+          )
+         """.update
+      .withUniqueGeneratedKeys[Comment](
+        "comment_id",
+        "comment_activity_id",
+        "comment_owner_id",
+        "comment_date",
+        "comment_message"
+      )
+      .transact(transactor)
+
+  def findComments(activityId: Activity.Id): F[List[Comment]] = {
+    val fragment = commentSelect ++ fr"""where comment_activity_id=${activityId.id}"""
+
+    fragment
+      .query[Comment]
+      .to[List]
+      .transact(transactor)
+  }
+
+  private val commentSelect =
+    fr"""
+      select
+        comment_id,
+        comment_activity_id,
+        comment_owner_id,
+        comment_date,
+        comment_message
+            from comments
+      """
   private val activitySelect = fr"""select
             activity_id,
             activity_category,
