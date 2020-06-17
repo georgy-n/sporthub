@@ -2,7 +2,7 @@ package ru.activity.hub.api.services.activity.repo
 
 import java.time.LocalDateTime
 
-import ru.activity.hub.api.services.activity.ActivityService.Filters
+import ru.activity.hub.api.services.activity.ActivityService.{EditActivityRequest, Filters}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, Comment, SubCategory}
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, CommentRequest, Reservation}
 import ru.activity.hub.api.services.domain.User
@@ -19,6 +19,8 @@ trait ActivityRepository[F[_]] {
   def getSubscribed(userId: User.Id): F[List[Activity.Id]]
   def findComments(activityId: Activity.Id): F[List[Comment]]
   def saveComment(comment: CommentRequest): F[Comment]
+  def editActivity(edited: EditActivityRequest): F[Int]
+  def deleteActivity(activityId: Activity.Id): F[Int]
 }
 
 object ActivityRepository {

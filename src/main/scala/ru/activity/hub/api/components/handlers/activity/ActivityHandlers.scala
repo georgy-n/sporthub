@@ -8,7 +8,7 @@ import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.activity.ActivityModule
-import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, Filters, SetCommentRequest}
+import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, EditActivityRequest, Filters, SetCommentRequest}
 import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, Category, Comment}
 import ru.tinkoff.tschema.finagle._
 import ru.tinkoff.tschema.syntax._
@@ -79,6 +79,18 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
           bearerAuth[User.Id]('users, 'userId) |>
           reqBody[SetCommentRequest] |>
           $$$[Comment]
+        ) <|> (
+        post |>
+          operation('edit) |>
+          bearerAuth[User.Id]('users, 'userId) |>
+          reqBody[EditActivityRequest] |>
+          $$$[Done]
+        ) <|> (
+        post |>
+          operation('delete) |>
+          bearerAuth[User.Id]('users, 'userId) |>
+          reqBody[DeleteActivityRequest] |>
+          $$$[Done]
         )
     )
   object handler {
@@ -108,5 +120,12 @@ final class ActivityHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*
 
     def comment(userId: User.Id, body: SetCommentRequest): F[Comment] =
       activityModule.activityService.setComment(userId, body)
+
+    def edit(userId: User.Id, body: EditActivityRequest): F[Done] =
+      activityModule.activityService.editActivity(body)
+
+    def delete(userId: User.Id, body: DeleteActivityRequest): F[Done] = {
+      activityModule.activityService.deleteActivity(userId, body.id)
+    }
   }
 }

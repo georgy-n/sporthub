@@ -6,7 +6,7 @@ import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
 import doobie.implicits.javatime._
-import ru.activity.hub.api.services.activity.ActivityService.Filters
+import ru.activity.hub.api.services.activity.ActivityService.{EditActivityRequest, Filters}
 import doobie.Fragments.whereAndOpt
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, Comment, SubCategory}
 import ru.activity.hub.api.infrastructure.DoobieInstances._
@@ -144,6 +144,30 @@ class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: 
     fragment
       .query[Comment]
       .to[List]
+      .transact(transactor)
+  }
+  def deleteActivity(activityId: Activity.Id): F[Int] = {
+    sql""" delete from activity
+          where activity_id = ${activityId.id}
+         """
+      .update
+      .run
+      .transact(transactor)
+  }
+
+  def editActivity(edited: EditActivityRequest): F[Int] = {
+    sql""" Update activity
+            set
+              activity_category = ${edited.category},
+              activity_subcategory = ${edited.subCategory},
+              activity_description = ${edited.description},
+              activity_count_person = ${edited.countPerson},
+              activity_date = ${edited.date}
+
+          where activity_id = ${edited.id}
+         """
+      .update
+      .run
       .transact(transactor)
   }
 

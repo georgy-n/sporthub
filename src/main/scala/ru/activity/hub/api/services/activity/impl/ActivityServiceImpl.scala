@@ -24,7 +24,16 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
 
   def saveActivity(userId: User.Id, activity: Activity): F[Unit] = ???
 
-  def deleteActivity(userId: User.Id, activityId: Activity.Id): F[Unit] = ???
+  def deleteActivity(userId: User.Id, activityId: Activity.Id): F[Done] =
+    for {
+      _ <- log.info("in service")
+
+      maybeActivity <- repo.findById(activityId)
+      _ <- log.info(maybeActivity.toString)
+      activity <- me.fromOption(maybeActivity, ServiceError("activity not found"))
+      _ <- me.raiseError(ServiceError("is not owner")).whenA(userId.id != activity.owner.id)
+      _ <-repo.deleteActivity(activityId)
+    } yield Done()
 
   def getCategories: F[List[Category]] = repo.getCategories
 
@@ -83,4 +92,11 @@ class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(
 
   def getComments(activityId: Activity.Id): F[List[Comment]] =
     repo.findComments(activityId)
+
+  def editActivity(req: ActivityService.EditActivityRequest): F[Done] =
+    for {
+    _ <- log.info("in service")
+    _<- log.info(req.toString)
+     _  <-  repo.editActivity(req)
+    } yield Done()
 }
