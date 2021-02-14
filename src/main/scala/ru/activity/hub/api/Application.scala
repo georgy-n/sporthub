@@ -14,6 +14,7 @@ import zio.ZIO
 import zio.interop.catz._
 import ru.activity.hub.api.infrastructure.HttpTask.{HttpTask, _}
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
+import zio.internal.Platform
 
 class Application {
   val start: Resource[MainTask, Unit] =
@@ -23,26 +24,26 @@ class Application {
       implicit0(session: SessionManager[MainTask, User.Id]) <- SessionComponent.build[MainTask]
       db <- DatabaseComponent.build[MainTask]
       services <- liftF(ServicesComponent.build[MainTask](db))
-      _ <- HttpComponent.build(
-        Modules(
-          new SystemModule[MainTask, HttpTask] ::
-          new UserHandlers[MainTask, HttpTask](services.userModule) ::
-          new ActivityHandlers[MainTask, HttpTask](services.activityModule) ::
-            Nil
-        )
-      )(
-        configs.config.httpConfig,
-        executors.main)
+//      _ <- HttpComponent.build(
+//        Modules(
+//          new SystemModule[MainTask, HttpTask] ::
+//          new UserHandlers[MainTask, HttpTask](services.userModule) ::
+//          new ActivityHandlers[MainTask, HttpTask](services.activityModule) ::
+//            Nil
+//        )
+//      )(
+//        configs.config.httpConfig,
+//        executors.main)
     } yield ()
 
 }
 
 object Main extends App {
 
-  DRuntime.unsafeRun(
     new Application().start
       .use(_ => ZIO.never)
 //      .catchAllCause(th => )
-      .provide(Context("initial", None))
+      .provide(Context("initial", None)
+
   )
 }
