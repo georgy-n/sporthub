@@ -7,11 +7,12 @@ organization in ThisBuild := "ru.activity.hub.api"
 
 version := "2.0.0"
 
-scalaVersion := "2.13.4"
+scalaVersion := "2.12.13"
 
 val scalacFlags = Seq(
   //  "-Xlog-implicits",
   "-Xlog-reflective-calls",
+//  "-Ymacro-annotations",
   "-opt:_",
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -43,21 +44,21 @@ val scalacFlags = Seq(
 //  "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
 //  "-Ypartial-unification",             // Enable partial unification in type constructor inference
   "-Ywarn-dead-code",                  // Warn when dead code is identified.
-//  "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
-//  "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
-//  "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
-//  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
-//  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
-//  "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
-//  "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
-//  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
-//  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-//  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
-//  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-//  "-Ywarn-unused:privates",            // Warn if a private member is unused.
-//  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-//  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
-//  "-Yrangepos"                         // required by SemanticDB compiler plugin
+  "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
+  "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
+  "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
+  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
+  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
+  "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
+  "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
+  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
+  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+  "-Ywarn-unused:privates",            // Warn if a private member is unused.
+  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
+  "-Yrangepos"                         // required by SemanticDB compiler plugin
 )
 
 scalacOptions in ThisBuild ++= scalacFlags
@@ -67,11 +68,11 @@ val versions = new {
   val cats = "2.3.0"
   val slf4j = "1.7.26"
   val logback = "1.2.3"
-  val typedSchema = "0.14.1"
   val tethys = "0.21.0"
   val scalaLogging = "3.9.2"
   val doobie = "0.10.0"
   val newType = "0.4.4"
+  val tapir = "0.17.12"
 
   val zio = new {
     val main = "1.0.4-2"
@@ -136,21 +137,25 @@ val dependencies = Seq(
   "com.tethys-json" %% "tethys-jackson"    % versions.tethys,
   "com.tethys-json" %% "tethys-derivation" % versions.tethys,
   "com.tethys-json" %% "tethys-enumeratum" % versions.tethys,
-  //typedSchema
-  "ru.tinkoff" %% "typed-schema-finagle" % versions.typedSchema excludeAll exclusions.findBugs,
-  "ru.tinkoff" %% "typed-schema-finagle-zio" % versions.typedSchema excludeAll (
-    exclusions.findBugs,
-    exclusions.zioCore,
-    exclusions.zioInteropCats),
-
-  "ru.tinkoff" %% "typed-schema-finagle-tethys" % versions.typedSchema excludeAll exclusions.findBugs,
-  "ru.tinkoff" %% "typed-schema-finagle-common" % versions.typedSchema excludeAll (exclusions.findBugs, exclusions.catsCore),
 
   "org.typelevel" %% "mouse" % "0.24",
 
+  //tapir
+  "com.softwaremill.sttp.tapir" %% "tapir-zio" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-finatra-server" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-finatra-server-cats" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-finatra" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-core" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "0.17.12",
+  //  "com.softwaremill.sttp.tapir" %% "tapir-redoc-http4s" % "0.17.12",
+
+
+  // circe
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
-//  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 )
 

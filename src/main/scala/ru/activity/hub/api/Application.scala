@@ -2,18 +2,14 @@ package ru.activity.hub.api
 
 import cats.effect.Resource
 import cats.effect.Resource.liftF
-import ru.activity.hub.api.components.HttpComponent.Modules
-import ru.activity.hub.api.components.handlers.activity.ActivityHandlers
-import ru.activity.hub.api.components.handlers.system.SystemModule
-import ru.activity.hub.api.components.handlers.users.UserHandlers
-import ru.activity.hub.api.components.{ConfigComponent, DatabaseComponent, ExecutionComponent, HttpComponent, ServicesComponent, SessionComponent}
+import ru.activity.hub.api.components.{ConfigComponent, DatabaseComponent, ExecutionComponent, ServicesComponent, SessionComponent}
 import ru.activity.hub.api.infrastructure.Context
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.domain.User
 import zio.ZIO
 import zio.interop.catz._
-import ru.activity.hub.api.infrastructure.HttpTask.{HttpTask, _}
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
+import ru.activity.hub.api.infrastructure.MainTask._
 import zio.internal.Platform
 
 class Application {

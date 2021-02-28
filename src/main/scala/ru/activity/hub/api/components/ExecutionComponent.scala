@@ -5,7 +5,7 @@ import cats.effect.{Resource, Sync}
 import ru.activity.hub.api.CustomRuntime
 import ru.activity.hub.api.infrastructure.executors.ExecutorCreator
 import zio.Runtime
-import zio.internal.{Executor, PlatformLive}
+import zio.internal.{Executor, Platform}
 
 
 case class ExecutionComponent(main: Runtime[Unit], http: Runtime[Unit])
@@ -16,7 +16,7 @@ object ExecutionComponent {
     for {
       httpECE <- ExecutorCreator.fixedExecutionContextResource(4, "http-finagle-") // new fixed thread poll
       main = CustomRuntime.platform("main-", 2) // MyRuntime.platfrom
-      http = PlatformLive.Default
+      http = Platform.default
         .withExecutor(Executor.fromExecutionContext(1024)(httpECE))
 
 
