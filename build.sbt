@@ -148,7 +148,7 @@ val dependencies = Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % "0.17.12",
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-finatra" % "0.17.12",
   "com.softwaremill.sttp.tapir" %% "tapir-core" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "0.17.12",
+  "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % "0.17.12",
   //  "com.softwaremill.sttp.tapir" %% "tapir-redoc-http4s" % "0.17.12",
 
 
@@ -198,6 +198,7 @@ lazy val activityHub = (project in file("."))
           .format(DateTimeFormatter.ofPattern("YYYYMMdd_hhmmss"))
       }
     ),
+    buildInfoPackage := " ru.activity",
     version := "0.1.0",
     libraryDependencies := dependencies
   )

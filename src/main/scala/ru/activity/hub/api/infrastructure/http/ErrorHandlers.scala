@@ -3,7 +3,6 @@ package ru.activity.hub.api.infrastructure.http
 import cats.instances.string._
 import cats.syntax.all._
 //import com.twitter.finagle.http.{Response, Status}
-import ru.activity.hub.api.infrastructure.http.domain._
 import tethys._
 import tethys.jackson._
 import zio._

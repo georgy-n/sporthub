@@ -1,28 +1,28 @@
 package ru.activity.hub.api
 
-import com.twitter.finatra.http.routing.HttpRouter
 import cats.syntax.all._
+import com.twitter.finatra.http.routing.HttpRouter
 import com.twitter.finatra.http.{Controller, HttpServer}
-import io.circe.generic.auto._
-import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe._
-import sttp.tapir.server.{DecodeFailureHandling, DefaultDecodeFailureResponse, LogRequestHandling, ServerDefaults, ServerEndpoint}
-import com.twitter.util.{Future => TFuture}
-import sttp.model.StatusCode
-import sttp.tapir.EndpointOutput
+import com.twitter.util.{Duration, Future => TFuture}
+import io.estatico.newtype.macros.newtype
+import ru.activity.hub.api.domain.{Pet, Response}
 import sttp.tapir.docs.openapi._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.tethysjson._
 import sttp.tapir.openapi.circe.yaml._
-import sttp.tapir.server.ServerDefaults.StatusCodes
-import sttp.tapir.server.finatra.cats._
 import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, FinatraServerOptions, TapirController}
+import sttp.tapir.server.{DecodeFailureHandling, DefaultDecodeFailureResponse, ServerDefaults, ServerEndpoint}
 import sttp.tapir.swagger.finatra.SwaggerFinatra
 import sttp.tapir.ztapir._
-import zio.interop.catz._
+import tethys.derivation.semiauto.{jsonReader, jsonWriter}
+import tethys.{JsonObjectWriter, JsonReader, JsonWriter}
 import zio.interop.twitter._
-import zio.{App, ExitCode, IO, RIO, Task, UIO, URIO, _}
+import zio.{App, ExitCode, RIO, Task, UIO, URIO, _}
+
+import scala.util.matching.Regex
 
 object ZioExampleFinatraServer extends App {
-  case class Pet(species: String, url: String)
+
   implicit val runtime: Runtime[zio.ZEnv] = zio.Runtime.default
   // Sample endpoint, with the logic implemented directly using .toRoutes
 
@@ -53,7 +53,7 @@ object ZioExampleFinatraServer extends App {
         }
       }
 
-  val yaml: String = OpenAPIDocsInterpreter.toOpenAPI(petEndpoint, "Our pets", "1.0").toYaml
+  val yaml: String = OpenAPIDocsInterpreter.serverEndpointsToOpenAPI[TFuture](Seq(petEndpoint), "Our pets", "1.0").toYaml
 
   val failureOutput = ServerDefaults.failureOutput(jsonBody[Response[Boolean]])
 
@@ -66,7 +66,7 @@ object ZioExampleFinatraServer extends App {
     response = failureHandler,
     failureMessage = _ => "i dont know"
   )
-  implicit val serveroptions =
+  implicit val serveroptions: FinatraServerOptions =
     FinatraServerOptions.default.copy(
       decodeFailureHandler = ctx => {
         ctx.input match {
@@ -88,19 +88,49 @@ object ZioExampleFinatraServer extends App {
     routers.foreach(addTapirRoute)
   }
 
-  val server = new HttpServer {
+  def server(s: List[FinatraRoute]) = new HttpServer {
     override def defaultHttpsPort: String = ":7777"
 
     protected override def disableAdminHttpServer: Boolean = true
 
     protected override def configureHttp(router: HttpRouter): Unit = {
-      router.add(new FinatraController(List(serve)))
+      router.add(new FinatraController(s))
       router.add(swagger)
     }
   }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    Task.effect(server.main(Array.empty[String])).exitCode
+    Task.effect(server(List(serve)).main(Array.empty[String])).exitCode
 
+
+}
+
+object domain {
   case class Response[T](payload: Option[T], resultCode: String, message: Option[String])
+  object Response {
+    implicit def responseJsonWriter[T: JsonWriter]: JsonWriter[Response[T]] =
+    {
+      jsonWriter[Response[T]]
+    }
+    implicit def responseJsonReader[T: JsonReader]: JsonReader[Response[T]] =
+      jsonReader[Response[T]]
+
+  }
+
+  case class Pet(species: String, url: String)
+  object Pet {
+    implicit def petJsonWriter: JsonWriter[Pet] = jsonWriter[Pet]
+    implicit def petJsonReader: JsonReader[Pet] = jsonReader[Pet]
+
+  }
+}
+
+object ttt {
+case class A(s: String) extends AnyVal
+
+  val reg: Regex = "\\w+".r
+  val big = "SASKNCLKASCLA"
+  big.split(Array(',', '.'))
+  val a = A("as")
+
 }
