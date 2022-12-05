@@ -16,19 +16,19 @@ package object http {
   implicit class EndpointReacher[I, O](endpoint: Endpoint[I, Unit, Response[O], Any]) {
     def handle(
         logic: I => ZIO[Context, Throwable, O]
-    )(runtime: zio.Runtime[Any]): ServerEndpoint[I, Unit, Response, Any, TFuture] =
-      ServerEndpoint[I, Unit, Response, Any, TFuture](
+    )(runtime: zio.Runtime[Any]): ServerEndpoint[I, Unit, Response[O], Any, TFuture] =
+      ServerEndpoint[I, Unit, Response[O], Any, TFuture](
         endpoint,
         _ =>
           i => {
-            val r: ZIO[Context, Nothing, Response] = for {
+            val r = for {
               trackingId <- ZIO.access[Context](_.trackingId)
               a <- logic(i).either
                 .catchAllDefect(th => UIO(Left(th)))
                 .flatMap {
                   case Left(value) =>
-                    UIO(Response(RawJson(ErrorPayload("msg", "code").asJson), trackingId, Status.Error))
-                  case Right(value) => UIO(Response(RawJson(value.asJson), trackingId, Status.Ok))
+                    UIO(Response.error(ErrorPayload("msg", "code"), trackingId))
+                  case Right(value) => UIO(Response.ok(value, trackingId))
                 }
             } yield a
             runtime.unsafeRunToTwitterFuture {

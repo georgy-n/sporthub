@@ -24,16 +24,16 @@ import sttp.tapir.generic.auto._
 final class SystemModule(runtime: zio.Runtime[Any]) extends HttpModule {
   import SystemEndpointsComponent._
 
-  val petEndpoint: ServerEndpoint[Unit, Unit, Response, Any, TFuture] =
+  val versionEndpoint =
     endpoint.get
       .in("version")
       .out(jsonBody[Response[VersionInfo]])
       .handle(_ => UIO(currentVersion))(runtime)
 
   override def routes(implicit options: FinatraServerOptions): List[FinatraRoute] =
-    List(petEndpoint).map(FinatraServerInterpreter.toRoute(_)(options))
+    List(versionEndpoint).map(FinatraServerInterpreter.toRoute(_)(options))
 
-  def endPoints: List[Endpoint[_, Unit, _, _]] = List(petEndpoint.endpoint)
+  def endPoints: List[Endpoint[_, Unit, _, _]] = List(versionEndpoint.endpoint)
 }
 
 object SystemEndpointsComponent {

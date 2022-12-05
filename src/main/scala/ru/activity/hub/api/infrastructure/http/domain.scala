@@ -10,7 +10,7 @@ import tethys._
 
 import scala.collection.immutable
 
-case class Response[T](payload: Option[T], trackingId: String, status: Status, errorPayload: Option[ErrorPayload] = None)
+case class Response[+T](payload: Option[T], trackingId: String, status: Status, errorPayload: Option[ErrorPayload] = None)
 
 object Response {
   implicit def responseWriter[T: JsonWriter]: JsonObjectWriter[Response[T]] = jsonWriter[Response[T]]
