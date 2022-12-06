@@ -1,4 +1,4 @@
-package ru.activity.hub.api.components.handlers.activity
+package ru.activity.hub.api.handlers.activity
 
 import java.time.{LocalDateTime, ZoneId}
 

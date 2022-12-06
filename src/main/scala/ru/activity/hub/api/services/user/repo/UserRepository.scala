@@ -1,6 +1,6 @@
 package ru.activity.hub.api.services.user.repo
 
-import ru.activity.hub.api.components.handlers.users.domain.RegistrationRequest
+import ru.activity.hub.api.handlers.users.domain.RegistrationRequest
 import ru.activity.hub.api.services.domain.User
 
 trait UserRepository[F[_]] {

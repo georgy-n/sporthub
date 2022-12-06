@@ -4,14 +4,11 @@
 //import cats.effect.Sync
 //import cats.syntax.all._
 //import io.scalaland.chimney.dsl._
-//import ru.activity.hub.api.infrastructure.http.{Entry, HttpModule, ReqCompleter, _}
+//import ru.activity.hub.api.infrastructure.http.{HttpModule, _}
 //import ru.activity.hub.api.services.domain.{ShortPersonalInfo, User}
 //import ru.activity.hub.api.services.user.UserModule
 //import ru.activity.hub.api.infrastructure.session.SessionManager
 //import ru.activity.hub.api.utils.TokenGenerator
-//import ru.tinkoff.tschema.finagle._
-//import ru.tinkoff.tschema.syntax._
-//import ru.tinkoff.tschema.finagle.tethysInstances._
 //import ru.activity.hub.api.infrastructure.NewTypeInstances._
 //
 //final class UserHandlers[F[_]: Sync, HttpF[_]: Monad: RoutedPlus: LiftHttp[*[_], F]: ReqCompleter](

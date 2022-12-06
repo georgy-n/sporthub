@@ -1,4 +1,4 @@
-package ru.activity.hub.api.components.handlers.users
+package ru.activity.hub.api.handlers.users
 
 import ru.activity.hub.api.services.domain.ShortPersonalInfo
 import tethys.{JsonObjectWriter, JsonReader}

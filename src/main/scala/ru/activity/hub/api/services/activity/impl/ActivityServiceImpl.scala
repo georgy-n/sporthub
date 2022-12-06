@@ -13,7 +13,7 @@ import ru.activity.hub.api.services.activity.repo.ActivityRepository
 import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOffer, CommentRequest}
 import ru.activity.hub.api.services.domain.User
 import cats.syntax.all._
-import ru.activity.hub.api.components.handlers.users.domain.Done
+import ru.activity.hub.api.handlers.users.domain.Done
 import ru.activity.hub.api.infrastructure.exceptions.ServiceError
 
 class ActivityServiceImpl[F[_]: Sync](repo: ActivityRepository[F])(

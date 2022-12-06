@@ -3,8 +3,8 @@ package ru.activity.hub.api
 import cats.effect.Resource
 import cats.effect.Resource.liftF
 import ru.activity.hub.api.components.HttpComponent.Modules
-import ru.activity.hub.api.components.handlers.system.SystemModule
 import ru.activity.hub.api.components.{ConfigComponent, DatabaseComponent, ExecutionComponent, HttpComponent, ServicesComponent, SessionComponent}
+import ru.activity.hub.api.handlers.system.SystemModule
 import ru.activity.hub.api.infrastructure.Context
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.services.domain.User

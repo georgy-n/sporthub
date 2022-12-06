@@ -4,7 +4,7 @@ import cats.effect.Bracket
 import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
-import ru.activity.hub.api.components.handlers.users.domain.RegistrationRequest
+import ru.activity.hub.api.handlers.users.domain.RegistrationRequest
 import ru.activity.hub.api.services.domain.User
 import ru.activity.hub.api.services.user.repo.UserRepository
 import ru.activity.hub.api.infrastructure.DoobieInstances._

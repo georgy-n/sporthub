@@ -2,7 +2,7 @@ package ru.activity.hub.api.services.user.impl
 
 import cats.MonadError
 import cats.syntax.all._
-import ru.activity.hub.api.components.handlers.users.domain.{LoginRequest, RegistrationRequest}
+import ru.activity.hub.api.handlers.users.domain.{LoginRequest, RegistrationRequest}
 import ru.activity.hub.api.infrastructure.exceptions.ServiceError
 import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.domain.User
