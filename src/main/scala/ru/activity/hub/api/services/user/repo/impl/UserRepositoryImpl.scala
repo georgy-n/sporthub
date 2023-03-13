@@ -1,6 +1,6 @@
 package ru.activity.hub.api.services.user.repo.impl
 
-import cats.effect.Bracket
+import cats.effect.MonadCancel
 import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
@@ -10,7 +10,7 @@ import ru.activity.hub.api.services.user.repo.UserRepository
 import ru.activity.hub.api.infrastructure.DoobieInstances._
 import ru.activity.hub.api.utils.SHA256
 
-class UserRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: Bracket[F, Throwable]) extends UserRepository[F]{
+class UserRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: MonadCancel[F, Throwable]) extends UserRepository[F]{
   override def findUser(userId: User.Id): F[Option[User]] = {
     sql"select user_id, user_first_name, user_last_name, user_login, user_password from users where user_id=${userId.id}"
       .query[User]

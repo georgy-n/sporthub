@@ -1,6 +1,6 @@
 package ru.activity.hub.api.services.activity.repo
 
-import cats.effect.Bracket
+import cats.effect.MonadCancel
 import cats.syntax.all._
 import doobie.util.transactor.Transactor
 import doobie._
@@ -14,7 +14,7 @@ import ru.activity.hub.api.services.activity.repo.ActivityRepository.{ActivityOf
 import ru.activity.hub.api.services.activity.repo.ActivityRepositoryImpl.CategoryRaw
 import ru.activity.hub.api.services.domain.User
 
-class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: Bracket[F, Throwable])
+class ActivityRepositoryImpl[F[_]](transactor: Transactor[F])(implicit bracket: MonadCancel[F, Throwable])
   extends ActivityRepository[F] {
   def getAllActivities: F[List[Activity]] =
     activitySelect
