@@ -1,37 +1,48 @@
 package ru.activity.hub.api.components
 
-import cats.effect.Resource
+import cats.data.ReaderT
+import cats.effect.{IO, Resource, Sync}
+import cats.effect.std.Dispatcher
+import cats.effect.unsafe.IORuntime
 import com.twitter.finagle.http.filter.Cors
 import com.twitter.finatra.http.routing.HttpRouter
 import com.twitter.finatra.http.{Controller, HttpServer}
 import ru.activity.hub.api.configs.HttpConfig
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
-import ru.activity.hub.api.infrastructure.http.HttpModule
+import ru.activity.hub.api.infrastructure.http.{HttpModule, Response, ServerBuilder}
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
-import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerOptions, TapirController}
-import sttp.tapir.swagger.finatra.SwaggerFinatra
-import zio._
-import zio.interop.catz._
-import zio.interop.twitter._
+import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, FinatraServerOptions, TapirController}
 import com.twitter.util.{Future => TFuture}
 import sttp.tapir.docs.openapi._
-import sttp.tapir.openapi.circe.yaml._
+import sttp.tapir.server.ServerEndpoint
+import ru.activity.hub.api.utils.converter._
+import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
+import sttp.tapir.server.interceptor.reject.DefaultRejectHandler
+import sttp.tapir.swagger.SwaggerUI
+import ru.activity.hub.api.infrastructure.{Context, MainTask}
+
 final case class HttpComponent(public: HttpServer)
 
 object HttpComponent {
-  final case class Modules(public: List[HttpModule])
+  final case class Modules(public: List[HttpModule[MainTask]])
 
-  def build(modules: Modules)(
-      config: HttpConfig,
-      httpRuntime: Runtime[Any]
-  ): Resource[MainTask, HttpComponent] = {
-    implicit val r = httpRuntime
+  def build(
+      modules: Modules, config: HttpConfig)(implicit runtime: IORuntime): Resource[MainTask, HttpComponent] = {
 
     val cors = new Cors.HttpFilter(
       Cors.Policy(
         allowsOrigin = _ => Some("*"),
         allowsMethods = _ => Some(List("GET", "POST", "OPTIONS")),
-        allowsHeaders = _ => Some(List("Authorization", "Content-Type", "Accept", "X-Requested-With", "remember-me")),
+        allowsHeaders = _ =>
+          Some(
+            List(
+              "Authorization",
+              "Content-Type",
+              "Accept",
+              "X-Requested-With",
+              "remember-me"
+            )
+        ),
         exposedHeaders = List()
       )
     )
@@ -43,30 +54,30 @@ object HttpComponent {
 //      response = failureHandler,
 //      failureMessage = _ => "i dont know"
 //    )
-    implicit val serveroptions: FinatraServerOptions =
+    val serveroptions: FinatraServerOptions =
       FinatraServerOptions.default
 //        .copy(
 //        decodeFailureHandler = ctx => {
-//          ctx.input match {
-//            case in => DecodeFailureHandling.response(anyJsonBody[Response[Boolean]]) {
+//          ctx.failingInput match {
+//            case in => DefaultDecodeFailureHandler.default.response(s => Response(payload = None, resultCode = "Bad", message = Some(ctx.failure.toString)) {
 //              Response(payload = None, resultCode = "Bad", message = Some(ctx.failure.toString))
 //            }
 //          }
 //        }
 //      )
-
     def bind(
-             endpoints: List[HttpModule],
-             port: Int): Resource[MainTask, HttpServer] = {
-      val yaml: String =
-        OpenAPIDocsInterpreter.toOpenAPI(endpoints.flatMap(_.endPoints), "ActivityHub", "1.0").toYaml
-      val swagger: SwaggerFinatra = new SwaggerFinatra(yaml)
+        endpoints: List[HttpModule[MainTask]],
+        port: Int
+    ): Resource[MainTask, HttpServer] = {
 
-      val httpServer = server(endpoints.flatMap(_.routes), swagger, port)
+      val builder: ServerBuilder[MainTask] = ServerBuilder.make
+      val customServer = endpoints
+        .foldLeft(builder)((builder, module) => module.addRoute(builder))
+        .server(port)
 
-      Resource.make[MainTask, HttpServer](
-        ZIO.effect(httpServer.main(Array.empty[String])).map(_ => httpServer)
-      )(ls => Task.fromTwitterFuture(ls.close()))
+      val serverIO = IO.delay(customServer.main(Array.empty[String])).map(_ => customServer).to[MainTask]
+
+      Resource.make(serverIO)(serv => serv.close().asF[MainTask])
     }
 
     for {
@@ -74,19 +85,6 @@ object HttpComponent {
     } yield HttpComponent(public)
   }
 
-  private class FinatraController(routers: List[FinatraRoute]) extends Controller with TapirController {
-    routers.foreach(addTapirRoute)
-  }
 
-  private def server(s: List[FinatraRoute], swagger: SwaggerFinatra, port: Int) = new HttpServer {
-    override def defaultHttpPort: String = s":$port"
-
-    protected override def disableAdminHttpServer: Boolean = true
-
-    protected override def configureHttp(router: HttpRouter): Unit = {
-      router.add(new FinatraController(s))
-      router.add(swagger)
-    }
-  }
 
 }

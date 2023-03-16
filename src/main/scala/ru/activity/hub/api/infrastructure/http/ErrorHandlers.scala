@@ -5,7 +5,6 @@ import cats.syntax.all._
 //import com.twitter.finagle.http.{Response, Status}
 import tethys._
 import tethys.jackson._
-import zio._
 
 object ErrorHandlers {
   // user related errors

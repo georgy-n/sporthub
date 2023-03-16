@@ -3,16 +3,16 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 name := "activityHub"
-organization in ThisBuild := "ru.activity.hub.api"
+ThisBuild / organization := "ru.activity.hub.api"
 
 version := "2.0.0"
 
-scalaVersion := "2.12.13"
+scalaVersion := "2.13.10"
 
 val scalacFlags = Seq(
   //  "-Xlog-implicits",
   "-Xlog-reflective-calls",
-//  "-Ymacro-annotations",
+  "-Ymacro-annotations",
   "-opt:_",
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -44,12 +44,12 @@ val scalacFlags = Seq(
 //  "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
 //  "-Ypartial-unification",             // Enable partial unification in type constructor inference
   "-Ywarn-dead-code",                  // Warn when dead code is identified.
-  "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
-  "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
-  "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
-  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
-  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
-  "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
+//  "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
+//  "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
+//  "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
+//  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
+//  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
+//  "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
   "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
   "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
   "-Ywarn-unused:locals",              // Warn if a local definition is unused.
@@ -61,25 +61,21 @@ val scalacFlags = Seq(
   "-Yrangepos"                         // required by SemanticDB compiler plugin
 )
 
-scalacOptions in ThisBuild ++= scalacFlags
+ThisBuild / scalacOptions ++= scalacFlags
 
 
 val versions = new {
-  val cats = "2.3.0"
+  val cats = "3.4.2"
+  val catsCore = "2.9.0"
+
   val slf4j = "1.7.26"
   val logback = "1.2.3"
-  val tethys = "0.21.0"
-  val scalaLogging = "3.9.2"
-  val doobie = "0.10.0"
+  val tethys = "0.26.0"
+  val scalaLogging = "3.9.5"
+  val doobie = "1.0.0-RC1"
   val newType = "0.4.4"
-  val tapir = "0.17.12"
+  val tapir = "1.2.4"
 
-  val zio = new {
-    val main = "1.0.4-2"
-    val nio = "0.1.1"
-    val cats = "2.3.1.0"
-    val twitter = "20.10.0.0"
-  }
   val scalajHttp = "2.4.2"
 }
 
@@ -87,15 +83,6 @@ val exclusions = new {
   val findBugs = ExclusionRule(organization = "com.google.code.findbugs")
   val nettyHandler =
     ExclusionRule(organization = "io.netty", name = "netty-handler")
-  val zioCore = ExclusionRule(organization = "dev.zio", name = "zio_2.12")
-  val zioInteropCats =
-    ExclusionRule(organization = "dev.zio", name = "zio-interop-cats_2.12")
-  val typedSchemaSwagger = ExclusionRule(organization = "ru.tinkoff",
-    name = "typed-schema-swagger_2.12")
-  val typedSchemaParam =
-    ExclusionRule(organization = "ru.tinkoff", name = "typed-schema-param_2.12")
-  val catsCore =
-    ExclusionRule(organization = "org.typelevel", name = "cats-core_2.12")
 
 }
 
@@ -103,13 +90,8 @@ val dependencies = Seq(
   //httpclient
   "org.scalaj" %% "scalaj-http" % versions.scalajHttp,
 
-  // zio
-  "dev.zio" %% "zio"              % versions.zio.main,
-  "dev.zio" %% "zio-interop-cats" % versions.zio.cats,
-  "dev.zio" %% "zio-interop-twitter" % versions.zio.twitter excludeAll exclusions.zioCore,
-
   //cats
-  "org.typelevel" %% "cats-core"   % versions.cats,
+  "org.typelevel" %% "cats-core"   % versions.catsCore,
   "org.typelevel" %% "cats-effect" % versions.cats,
 
   //newtypes
@@ -141,21 +123,15 @@ val dependencies = Seq(
   "org.typelevel" %% "mouse" % "0.24",
 
   //tapir
-  "com.softwaremill.sttp.tapir" %% "tapir-zio" % versions.tapir,
   "com.softwaremill.sttp.tapir" %% "tapir-finatra-server" % versions.tapir,
-  "com.softwaremill.sttp.tapir" %% "tapir-finatra-server-cats" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-finatra" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-core" % "0.17.12",
-  "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % "0.17.12",
-  //  "com.softwaremill.sttp.tapir" %% "tapir-redoc-http4s" % "0.17.12",
-
-
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui" % versions.tapir,
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.3.1",
+  "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % versions.tapir,
   // circe
-  compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
+  compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
-  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 )
 
@@ -166,7 +142,7 @@ val testDependencies = Seq(
   "org.tpolecat" %% "doobie-scalatest" % versions.doobie,
 ).map(_ % "test")
 
-resolvers in ThisBuild ++= Seq(
+ThisBuild / resolvers ++= Seq(
   "Sbt repo" at "https://repo.scala-sbt.org/scalasbt/simple/repo1-cache",
   "Confluent Maven Repo" at "https://packages.confluent.io/maven/",
   Resolver.sonatypeRepo("releases"),

@@ -11,11 +11,17 @@ trait SessionManager[F[_], T] {
   def get(session: String): F[Option[T]]
   def set(session: String, value: T): F[Unit]
   def remove(userId: T): F[Unit]
+
+  def foo(str: String): F[T]
 }
 
 // TODO improve me
 class SessionManagerImpl[F[_]: Sync, T](implicit log: Logging[F]) extends SessionManager[F, T] {
   private val _storage = mutable.Map.empty[String, T]
+
+  override def foo(session: String): F[T] = Sync[F].delay {
+    _storage(session)
+  } <* log.info(s"get $session")
 
   override def get(session: String): F[Option[T]] =
     Sync[F].delay {

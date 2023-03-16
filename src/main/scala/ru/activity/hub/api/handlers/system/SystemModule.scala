@@ -1,54 +1,44 @@
 package ru.activity.hub.api.handlers.system
 
 import cats.Monad
-import sttp.tapir.Endpoint
-import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, FinatraServerOptions}
+import cats.effect.std.Dispatcher
+import cats.syntax.all._
+import ru.activity.BuildInfo
+import ru.activity.hub.api.handlers.SecureModule
+import ru.activity.hub.api.infrastructure.http._
+import ru.activity.hub.api.infrastructure.session.SessionManager
+import ru.activity.hub.api.services.domain.User
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.tethysjson.jsonBody
+import tethys.derivation.semiauto.{jsonReader, jsonWriter}
+import tethys.{JsonReader, JsonWriter}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import ru.activity.BuildInfo
-import ru.activity.hub.api.infrastructure.http.Response
-import ru.activity.hub.api.infrastructure.http._
-import ru.activity.hub.api.infrastructure.http.HttpModule
-import sttp.tapir.json.tethysjson.jsonBody
-import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.ztapir.endpoint
-import tethys.{JsonReader, JsonWriter}
-import tethys.derivation.semiauto.{jsonReader, jsonWriter}
-import com.twitter.util.{Future => TFuture}
-import zio.interop.twitter._
-import cats.syntax.all._
-import zio.{UIO, ZIO}
-import sttp.tapir.ztapir._
-import sttp.tapir.generic.auto._
 
-final class SystemModule[F[_]: Monad](runtime: zio.Runtime[Any]) extends HttpModule[F] {
-  import SystemEndpointsComponent._
+final class SystemModule[F[_]: Monad](
+    val sessionManager: SessionManager[F, User.Id],
+    rc: ResponseComplete[F]
+) extends HttpModule[F] with SecureModule[F] {
+  import SystemModule._
 
-  val versionEndpoint: Endpoint[Unit, Unit, Response[VersionInfo], Any] =
+  val versionEndpoint: PublicEndpoint[Unit, Unit, Response[VersionInfo], Any] =
     endpoint.get
       .in("version")
       .out(jsonBody[Response[VersionInfo]])
 
-  val versionServerEndpoint: ServerEndpoint[Unit, Unit, Response[VersionInfo], Any, TFuture] =
-    endpoint.get
-      .in("version")
-      .out(jsonBody[Response[VersionInfo]])
-//      .serverLogic()
-      .handle(_ => UIO(currentVersion))(runtime)
+  val versionLogic: F[VersionInfo] = currentVersion.pure[F]
 
-  override def routes(implicit options: FinatraServerOptions): List[FinatraRoute] =
-    List(versionServerEndpoint).map(FinatraServerInterpreter.toRoute(_)(options))
-
-  def endPoints: List[Endpoint[_, Unit, _, _]] = List(versionServerEndpoint.endpoint)
-
-  override def serverEndpoint: List[ServerEndpoint[_, Unit, _, _, F]] =
-    List(
-      versionEndpoint.serverLogicPart[](a => Monad[F].pure(currentVersion))
+  override def addRoute(builder: ServerBuilder[F]): ServerBuilder[F] =
+    builder.addRoute[Unit, Unit, Response[VersionInfo]](
+      versionEndpoint,
+      _ => rc.complete(versionLogic),
+      _ => Monad[F].pure()
     )
 }
 
-object SystemEndpointsComponent {
+object SystemModule {
   val startTime =
     ZonedDateTime.now().format(DateTimeFormatter.ofPattern("YYYYMMdd_hhmmss"))
   val currentVersion = VersionInfo(
@@ -70,7 +60,9 @@ object SystemEndpointsComponent {
   )
 
   object VersionInfo {
-    implicit val versionInfoWriter: JsonWriter[VersionInfo] = jsonWriter[VersionInfo]
-    implicit val versionInfoReader: JsonReader[VersionInfo] = jsonReader[VersionInfo]
+    implicit val versionInfoWriter: JsonWriter[VersionInfo] =
+      jsonWriter[VersionInfo]
+    implicit val versionInfoReader: JsonReader[VersionInfo] =
+      jsonReader[VersionInfo]
   }
 }
