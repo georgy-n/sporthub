@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 name := "activityHub"
 ThisBuild / organization := "ru.activity.hub.api"
 
-version := "2.0.0"
+version := "2.1.0"
 
 scalaVersion := "2.13.10"
 
@@ -74,7 +74,7 @@ val versions = new {
   val scalaLogging = "3.9.5"
   val doobie = "1.0.0-RC1"
   val newType = "0.4.4"
-  val tapir = "1.2.4"
+  val tapir = "1.2.12"
 
   val scalajHttp = "2.4.2"
 }
@@ -126,7 +126,7 @@ val dependencies = Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-finatra-server" % versions.tapir,
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui" % versions.tapir,
-  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.3.1",
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.3.2",
   "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
   "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % versions.tapir,
   // circe

@@ -1,22 +1,18 @@
 package ru.activity.hub.api.infrastructure.http
 
-import cats.effect.IO
-import cats.effect.std.Dispatcher
 import cats.effect.unsafe.IORuntime
 import com.twitter.finatra.http.{Controller, HttpServer}
 import com.twitter.finatra.http.routing.HttpRouter
 import sttp.tapir.{AnyEndpoint, Endpoint}
 import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, TapirController}
 import cats.syntax.all._
-import com.twitter.util.Future
+import com.twitter.finagle.http.filter.Cors
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
-import sttp.tapir.server.{PartialServerEndpoint, ServerEndpoint}
 import ru.activity.hub.api.utils.converter._
 import sttp.apispec.openapi.circe.yaml.RichOpenAPI
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.swagger.SwaggerUI
 import com.twitter.util.{Future => TFuture}
-import ru.activity.hub.api.Start.swagger
 import ru.activity.hub.api.infrastructure.{Context, TrackingIdGenerator}
 
 trait ServerBuilder[F[_]] {
@@ -78,12 +74,30 @@ object ServerBuilder {
     routers.foreach(addTapirRoute)
   }
 
+  val cors = new Cors.HttpFilter(
+    Cors.Policy(
+      allowsOrigin = _ => Some("*"),
+      allowsMethods = _ => Some(List("GET", "POST", "OPTIONS")),
+      allowsHeaders = _ =>
+        Some(
+          List(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-Requested-With",
+            "remember-me"
+          )
+        ),
+      exposedHeaders = List()
+    )
+  )
+
   private def mkServer(s: List[FinatraRoute], port: Int) = new HttpServer {
     override def defaultHttpPort: String = s":$port"
 
     protected override def disableAdminHttpServer: Boolean = true
 
     protected override def configureHttp(router: HttpRouter): Unit =
-      router.add(new FinatraController(s))
+      router.add(cors, new FinatraController(s))
   }
 }

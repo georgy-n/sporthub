@@ -1,7 +1,6 @@
 package ru.activity.hub.api.handlers.system
 
 import cats.Monad
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import ru.activity.BuildInfo
 import ru.activity.hub.api.handlers.SecureModule
