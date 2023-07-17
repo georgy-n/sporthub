@@ -24,7 +24,7 @@ class Main {
       db       <- DatabaseComponent.build[MainTask]
       services <- eval(ServicesComponent.build[MainTask](db))
       httpModules = Modules(
-        new SystemModule[MainTask](session, rc) ::
+//        new SystemModule[MainTask](session, rc) ::
         new UserHandlers[MainTask](services.userModule, rc) ::
         //          new ActivityHandlers[MainTask, HttpTask](services.activityModule) ::
         Nil

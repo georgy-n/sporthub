@@ -3,8 +3,8 @@ package ru.activity.hub.api.infrastructure.http
 import cats.effect.unsafe.IORuntime
 import com.twitter.finatra.http.{Controller, HttpServer}
 import com.twitter.finatra.http.routing.HttpRouter
-import sttp.tapir.{AnyEndpoint, Endpoint}
-import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, TapirController}
+import sttp.tapir.{AnyEndpoint, Endpoint, stringBody}
+import sttp.tapir.server.finatra.{FinatraRoute, FinatraServerInterpreter, FinatraServerOptions, TapirController}
 import cats.syntax.all._
 import com.twitter.finagle.http.filter.Cors
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
@@ -14,6 +14,10 @@ import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.swagger.SwaggerUI
 import com.twitter.util.{Future => TFuture}
 import ru.activity.hub.api.infrastructure.{Context, TrackingIdGenerator}
+import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
+import sttp.tapir.server.interceptor.exception.ExceptionHandler
+import sttp.tapir.server.interceptor.reject.RejectHandler
+import sttp.tapir.server.model.ValuedEndpointOutput
 
 trait ServerBuilder[F[_]] {
   def addRoute[I, E, O](
@@ -35,13 +39,29 @@ object ServerBuilder {
       endpoints: List[AnyEndpoint]
   )(implicit runtime: IORuntime)
     extends ServerBuilder[MainTask] {
+
+
+    val customServerOptions = FinatraServerOptions.customiseInterceptors.decodeFailureHandler(
+      ctx => {
+        println("decode failure")
+        DefaultDecodeFailureHandler.default(ctx)
+      }
+    ).exceptionHandler(ExceptionHandler[TFuture] { ctx =>
+      println("exeption handler")
+      TFuture.value(Some(ValuedEndpointOutput[String](stringBody, s"Internal Server Error, exception")))
+    })
+      .rejectHandler(RejectHandler[TFuture] { f =>
+        println("reject handler")
+        TFuture.value(Some(ValuedEndpointOutput[String](stringBody, s"Internal Server Error, exception")))
+      }).options
+
     override def addRoute[I, E, O](
         endpoint: Endpoint[Unit, I, E, O, Any],
         logic: I => MainTask[O],
         errorTr: Throwable => MainTask[E]
     ): ServerBuilder[MainTask] =
       new ServerBuilderImpl(
-        routes :+ FinatraServerInterpreter().toRoute(
+        routes :+ FinatraServerInterpreter(customServerOptions).toRoute(
           endpoint
             .serverLogic(
               i =>

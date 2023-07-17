@@ -10,7 +10,7 @@ import ru.activity.hub.api.services.user.UserModule
 import ru.activity.hub.api.infrastructure.session.SessionManager
 import ru.activity.hub.api.utils.TokenGenerator
 import ru.activity.hub.api.infrastructure.NewTypeInstances._
-import sttp.tapir.{endpoint, PublicEndpoint}
+import sttp.tapir.{PublicEndpoint, endpoint, plainBody, stringBody}
 import sttp.tapir.json.tethysjson.jsonBody
 import sttp.tapir.generic.auto._
 
@@ -22,12 +22,13 @@ class UserHandlers[F[_]: Sync](
   import ru.activity.hub.api.handlers.users.domain._
   import ru.activity.hub.api.handlers.tethysRW._
 
-  val userLogin: PublicEndpoint[LoginRequest, Unit, Response[LoginResponse], Any] =
+  val userLogin: PublicEndpoint[LoginRequest, Response[String], Response[LoginResponse], Any] =
     endpoint.post
       .in("user")
       .in("login")
       .in(jsonBody[LoginRequest])
       .out(jsonBody[Response[LoginResponse]])
+      .errorOut(jsonBody[Response[String]])
 
 //  def api =
 //    prefix('user) |> (
@@ -69,16 +70,17 @@ class UserHandlers[F[_]: Sync](
 
   def addRoute(builder: ServerBuilder[F]): ServerBuilder[F] =
     builder
-      .addRoute[LoginRequest, Unit, Response[LoginResponse]](
+      .addRoute[LoginRequest, Response[String], Response[LoginResponse]](
         userLogin,
         i => rc.complete(handler.login(i)),
-        th => Sync[F].delay(println(th)).as(())
+        th => Sync[F].delay(println(th))
+          .as(Response.error(ErrorPayload(th.toString, "code for test"), "just for test"))
       )
 
   object handler {
     def login(body: LoginRequest): F[LoginResponse] = {
       for {
-        _ <- Sync[F].delay(print(body))
+        _ <- Sync[F].delay(println(body))
         user <- userModule.userService.login(body)
         _ <- Sync[F].delay(user)
 
