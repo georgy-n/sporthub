@@ -6,20 +6,19 @@ import ru.activity.hub.api.infrastructure.logging.Logging
 import ru.activity.hub.api.services.activity.ActivityModule
 import ru.activity.hub.api.services.user.UserModule
 
-case class ServicesComponent[F[_]](userModule: UserModule[F], activityModule: ActivityModule[F])
+case class ServicesComponent[F[_]](
+  userModule: UserModule[F],
+  activityModule: ActivityModule[F]
+)
 
 object ServicesComponent {
-  def build[F[_]](dbComponent: DatabaseComponent[F])(
-    implicit
-    sync: Sync[F],
-    logging: Logging[F]
-  ): F[ServicesComponent[F]] = {
+  def build[F[_]](
+    dbComponent: DatabaseComponent[F]
+  )(implicit sync: Sync[F], logging: Logging[F]): F[ServicesComponent[F]] =
     for {
-      _ <- logging.info("init Services module")
-      userModule <- UserModule.build[F](dbComponent.db)
+      _              <- logging.info("init Services module")
+      userModule     <- UserModule.build[F](dbComponent.db)
       activityModule <- ActivityModule.build[F](dbComponent.db)
-      _ <- logging.info("inited Services module")
-
+      _              <- logging.info("inited Services module")
     } yield ServicesComponent(userModule, activityModule)
-  }
 }

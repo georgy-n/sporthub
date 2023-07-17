@@ -1,6 +1,6 @@
-package ru.activity.hub.api.components.handlers
+package ru.activity.hub.api.handlers
 
-import ru.activity.hub.api.components.handlers.users.domain.Done
+import ru.activity.hub.api.handlers.users.domain.Done
 import ru.activity.hub.api.services.domain.User
 import tethys.{JsonObjectWriter, JsonReader}
 import tethys.derivation.semiauto.{jsonReader, jsonWriter}

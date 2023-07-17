@@ -3,15 +3,16 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 name := "activityHub"
-organization in ThisBuild := "ru.activity.hub.api"
+ThisBuild / organization := "ru.activity.hub.api"
 
-version := "2.0.0"
+version := "2.1.0"
 
-scalaVersion := "2.13.4"
+scalaVersion := "2.13.10"
 
 val scalacFlags = Seq(
   //  "-Xlog-implicits",
   "-Xlog-reflective-calls",
+  "-Ymacro-annotations",
   "-opt:_",
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -49,36 +50,32 @@ val scalacFlags = Seq(
 //  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
 //  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
 //  "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
-//  "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
-//  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
-//  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-//  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
-//  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-//  "-Ywarn-unused:privates",            // Warn if a private member is unused.
-//  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-//  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
-//  "-Yrangepos"                         // required by SemanticDB compiler plugin
+  "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
+  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
+  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+  "-Ywarn-unused:privates",            // Warn if a private member is unused.
+  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
+  "-Yrangepos"                         // required by SemanticDB compiler plugin
 )
 
-scalacOptions in ThisBuild ++= scalacFlags
+ThisBuild / scalacOptions ++= scalacFlags
 
 
 val versions = new {
-  val cats = "2.3.0"
+  val cats = "3.4.2"
+  val catsCore = "2.9.0"
+
   val slf4j = "1.7.26"
   val logback = "1.2.3"
-  val typedSchema = "0.14.1"
-  val tethys = "0.21.0"
-  val scalaLogging = "3.9.2"
-  val doobie = "0.10.0"
+  val tethys = "0.26.0"
+  val scalaLogging = "3.9.5"
+  val doobie = "1.0.0-RC1"
   val newType = "0.4.4"
+  val tapir = "1.5.1"
 
-  val zio = new {
-    val main = "1.0.4-2"
-    val nio = "0.1.1"
-    val cats = "2.3.1.0"
-    val twitter = "20.10.0.0"
-  }
   val scalajHttp = "2.4.2"
 }
 
@@ -86,15 +83,6 @@ val exclusions = new {
   val findBugs = ExclusionRule(organization = "com.google.code.findbugs")
   val nettyHandler =
     ExclusionRule(organization = "io.netty", name = "netty-handler")
-  val zioCore = ExclusionRule(organization = "dev.zio", name = "zio_2.12")
-  val zioInteropCats =
-    ExclusionRule(organization = "dev.zio", name = "zio-interop-cats_2.12")
-  val typedSchemaSwagger = ExclusionRule(organization = "ru.tinkoff",
-    name = "typed-schema-swagger_2.12")
-  val typedSchemaParam =
-    ExclusionRule(organization = "ru.tinkoff", name = "typed-schema-param_2.12")
-  val catsCore =
-    ExclusionRule(organization = "org.typelevel", name = "cats-core_2.12")
 
 }
 
@@ -102,13 +90,8 @@ val dependencies = Seq(
   //httpclient
   "org.scalaj" %% "scalaj-http" % versions.scalajHttp,
 
-  // zio
-  "dev.zio" %% "zio"              % versions.zio.main,
-  "dev.zio" %% "zio-interop-cats" % versions.zio.cats,
-  "dev.zio" %% "zio-interop-twitter" % versions.zio.twitter excludeAll exclusions.zioCore,
-
   //cats
-  "org.typelevel" %% "cats-core"   % versions.cats,
+  "org.typelevel" %% "cats-core"   % versions.catsCore,
   "org.typelevel" %% "cats-effect" % versions.cats,
 
   //newtypes
@@ -136,21 +119,19 @@ val dependencies = Seq(
   "com.tethys-json" %% "tethys-jackson"    % versions.tethys,
   "com.tethys-json" %% "tethys-derivation" % versions.tethys,
   "com.tethys-json" %% "tethys-enumeratum" % versions.tethys,
-  //typedSchema
-  "ru.tinkoff" %% "typed-schema-finagle" % versions.typedSchema excludeAll exclusions.findBugs,
-  "ru.tinkoff" %% "typed-schema-finagle-zio" % versions.typedSchema excludeAll (
-    exclusions.findBugs,
-    exclusions.zioCore,
-    exclusions.zioInteropCats),
-
-  "ru.tinkoff" %% "typed-schema-finagle-tethys" % versions.typedSchema excludeAll exclusions.findBugs,
-  "ru.tinkoff" %% "typed-schema-finagle-common" % versions.typedSchema excludeAll (exclusions.findBugs, exclusions.catsCore),
 
   "org.typelevel" %% "mouse" % "0.24",
 
-  compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
+  //tapir
+  "com.softwaremill.sttp.tapir" %% "tapir-finatra-server" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui" % versions.tapir,
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.4.0",
+  "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
+  "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % versions.tapir,
+  // circe
+  compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
-//  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 )
 
@@ -161,7 +142,7 @@ val testDependencies = Seq(
   "org.tpolecat" %% "doobie-scalatest" % versions.doobie,
 ).map(_ % "test")
 
-resolvers in ThisBuild ++= Seq(
+ThisBuild / resolvers ++= Seq(
   "Sbt repo" at "https://repo.scala-sbt.org/scalasbt/simple/repo1-cache",
   "Confluent Maven Repo" at "https://packages.confluent.io/maven/",
   Resolver.sonatypeRepo("releases"),
@@ -193,6 +174,7 @@ lazy val activityHub = (project in file("."))
           .format(DateTimeFormatter.ofPattern("YYYYMMdd_hhmmss"))
       }
     ),
+    buildInfoPackage := " ru.activity",
     version := "0.1.0",
     libraryDependencies := dependencies
   )

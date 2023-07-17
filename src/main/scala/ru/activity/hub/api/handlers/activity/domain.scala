@@ -1,10 +1,10 @@
-package ru.activity.hub.api.components.handlers.activity
+package ru.activity.hub.api.handlers.activity
 
 import java.time.{LocalDateTime, ZoneId}
 
 import ru.activity.hub.api.services.activity.ActivityService.{ActivityOfferRequest, EditActivityRequest, Filters, SetCommentRequest}
 import ru.activity.hub.api.services.activity.domain.{Activity, ActivityInfo, ActivityStatus, Category, Comment}
-import ru.tinkoff.tschema.param.HttpParam
+//import ru.tinkoff.tschema.param.HttpParam
 import tethys.{JsonObjectWriter, JsonReader, JsonWriter}
 import tethys.derivation.semiauto._
 
@@ -26,7 +26,7 @@ object domain {
   implicit val activityDeleteReader: JsonReader[DeleteActivityRequest] = jsonReader[DeleteActivityRequest]
 
   implicit val filtersWriter: JsonObjectWriter[Filters] = jsonWriter[Filters]
-  implicit val filters: HttpParam[Filters] = HttpParam.generate[Filters]
+//  implicit val filters: HttpParam[Filters] = HttpParam.generate[Filters]
   implicit val commentWriter: JsonObjectWriter[Comment] = jsonWriter[Comment]
   implicit val setCommentReader: JsonReader[SetCommentRequest] = jsonReader[SetCommentRequest]
 }

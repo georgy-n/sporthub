@@ -1,6 +1,6 @@
 package ru.activity.hub.api.components
 
-import cats.effect.{Async, Blocker, ContextShift, Resource}
+import cats.effect.{Async, Resource}
 import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
 import doobie.util.transactor.Transactor
@@ -9,7 +9,7 @@ import ru.activity.hub.api.infrastructure.executors.ExecutorCreator
 case class DatabaseComponent[F[_]](db: Transactor[F])
 
 object DatabaseComponent {
-  def build[F[_]: Async: ContextShift]: Resource[F, DatabaseComponent[F]] = {
+  def build[F[_]: Async]: Resource[F, DatabaseComponent[F]] = {
     def newTransactor: Resource[F, HikariTransactor[F]] = {
       val config = new HikariConfig()
       config.setJdbcUrl("jdbc:postgresql://drona.db.elephantsql.com:5432/tlfakbeb")
@@ -21,12 +21,11 @@ object DatabaseComponent {
 
       for {
         ce <- ExecutorCreator.fixedExecutionContextResource(2, "doobie-ec") // our connect EC
-        be <- ExecutorCreator.executionContextResource(5, 4 * 5, 60000L, "doobie-blocker-")
-          .map(Blocker.liftExecutionContext) // our blocking EC
+//        be <- ExecutorCreator.executionContextResource(5, 4 * 5, 60000L, "doobie-blocker-")
+//          .map(Blocker.liftExecutionContext) // our blocking EC
         xa <- HikariTransactor.fromHikariConfig[F](
           config,
-          ce, // await connection here
-          be // execute JDBC operations here
+          ce // await connection here
         )
       } yield xa
     }

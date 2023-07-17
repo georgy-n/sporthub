@@ -1,41 +1,44 @@
 package ru.activity.hub.api.infrastructure
 
 import doobie.util.meta.Meta
+import io.estatico.newtype.macros.newtype
 import io.estatico.newtype.{BaseNewType, Coercible}
 import ru.activity.hub.api.services.activity.domain.{Activity, Category, Comment, SubCategory}
 import ru.activity.hub.api.services.domain.User
-import ru.tinkoff.tschema.param.{ParamSource, SingleParam}
+import shapeless.LowPriority
 import tethys.writers.KeyWriter
 import tethys.{JsonReader, JsonWriter}
 
 object NewTypeInstances {
+  import io.estatico.newtype.ops._
+
   implicit def NewTypeJsonWriter[R, N](
       implicit
-//      LP: LowPriority,
+      LP: LowPriority,
       CC: Coercible[JsonWriter[R], JsonWriter[N]],
       R: JsonWriter[R]
-  ): JsonWriter[N] = CC(R)
+  ): JsonWriter[N] = R.coerce
 
   implicit def NewTypeJsonReader[R, N](
       implicit
-//      LP: LowPriority,
+      LP: LowPriority,
       CC: Coercible[JsonReader[R], JsonReader[N]],
       R: JsonReader[R]
-  ): JsonReader[N] = CC(R)
+  ): JsonReader[N] = R.coerce
 
   implicit def NewTypeKeyWriter[R, N](
       implicit
-//      LP: LowPriority,
+      LP: LowPriority,
       CC: Coercible[KeyWriter[R], KeyWriter[N]],
       R: KeyWriter[R]
-  ): KeyWriter[N] = CC(R)
-
-  implicit def NewTypeParam[S >: ParamSource.All <: ParamSource, R, N](
-      implicit
-//      LP: LowPriority,
-      CC: Coercible[SingleParam[S, R], SingleParam[S, N]],
-      R: SingleParam[S, R]
-  ): SingleParam[S, N] = CC(R)
+  ): KeyWriter[N] = R.coerce
+//
+//  implicit def NewTypeParam[S >: ParamSource.All <: ParamSource, R, N](
+//      implicit
+////      LP: LowPriority,
+//      CC: Coercible[SingleParam[S, R], SingleParam[S, N]],
+//      R: SingleParam[S, R]
+//  ): SingleParam[S, N] = CC(R)
 }
 
 trait LowPriorityInstances {

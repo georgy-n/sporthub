@@ -1,5 +1,7 @@
 package ru.activity.hub.api.infrastructure.http
 
-trait HttpModule[Http[_]] {
-  def entry: Entry[Http]
+import cats.effect.std.Dispatcher
+
+trait HttpModule[F[_]] {
+  def addRoute(builder: ServerBuilder[F]): ServerBuilder[F]
 }

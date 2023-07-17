@@ -1,51 +1,43 @@
 package ru.activity.hub.api.components
 
-import com.twitter.finagle.{Http, ListeningServer, Service}
-import ru.activity.hub.api.infrastructure.http.{HttpModule, HttpService}
-import zio._
-import zio.interop.catz._
-import zio.interop.twitter._
-import cats.effect.Resource
-import com.twitter.finagle.http.filter.Cors
-import com.twitter.finagle.http.{Request, Response}
+import cats.effect.unsafe.IORuntime
+import cats.effect.{IO, Resource}
+import com.twitter.finatra.http.HttpServer
 import ru.activity.hub.api.configs.HttpConfig
-import ru.activity.hub.api.infrastructure.HttpTask.HttpTask
-import ru.activity.hub.api.infrastructure.HttpTask._
 import ru.activity.hub.api.infrastructure.MainTask.MainTask
+import ru.activity.hub.api.infrastructure.http.{HttpModule, ServerBuilder}
+import ru.activity.hub.api.utils.converter._
 
-final case class HttpComponent(public: ListeningServer)
+final case class HttpComponent(public: HttpServer)
 
 object HttpComponent {
-  final case class Modules[F[_]](public: List[HttpModule[F]])
+  final case class Modules(public: List[HttpModule[MainTask]])
 
-  def build(modules: Modules[HttpTask])(
-      config: HttpConfig,
-      httpRuntime: Runtime[Any]
+  def build(modules: Modules, config: HttpConfig)(
+    implicit runtime: IORuntime
   ): Resource[MainTask, HttpComponent] = {
-    implicit val r = httpRuntime
 
-    val cors = new Cors.HttpFilter(
-      Cors.Policy(
-        allowsOrigin = _ => Some("*"),
-        allowsMethods = _ => Some(List("GET", "POST", "OPTIONS")),
-        allowsHeaders = _ => Some(List("Authorization", "Content-Type", "Accept", "X-Requested-With", "remember-me")),
-        exposedHeaders = List()
-      )
-    )
+    def bind(
+      endpoints: List[HttpModule[MainTask]],
+      port: Int
+    ): Resource[MainTask, HttpServer] = {
 
-    def public: Service[Request, Response] =
-      HttpService.make(modules.public)
+      val builder: ServerBuilder[MainTask] = ServerBuilder.make
+      val customServer = endpoints
+        .foldLeft(builder)((builder, module) => module.addRoute(builder))
+        .server(port)
 
-    def bind(server: Http.Server,
-             service: Service[Request, Response],
-             port: Int): Resource[MainTask, ListeningServer] =
-      Resource.make[MainTask, ListeningServer](
-        ZIO.effect(server.withNoHttp2.serve(":" + port, cors(_, service)))
-      )(ls => Task.fromTwitterFuture(Task.effect(ls.close())))
+      val serverIO = IO
+        .delay(customServer.main(Array.empty[String]))
+        .map(_ => customServer)
+        .to[MainTask]
+
+      Resource.make(serverIO)(serv => serv.close().asF[MainTask])
+    }
 
     for {
-      server <- Resource.pure[MainTask, Http.Server](Http.server)
-      public <- bind(server, public, config.port)
+      public <- bind(modules.public, config.port)
     } yield HttpComponent(public)
   }
+
 }
